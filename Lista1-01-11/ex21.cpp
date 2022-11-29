@@ -9,8 +9,9 @@ int main()
     cin >> l1 >> l2;
     area = l1*l2;
     pot = area * parametro;
-    cout << setprecision(3) << area << "m2" << endl;
-    cout << setprecision(4) << pot << "W";
+    cout << fixed << setprecision(1);
+    cout << area << "m2" << endl;
+    cout << pot << "W";
 
     return 0;
 }
