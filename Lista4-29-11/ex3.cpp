@@ -1,9 +1,10 @@
 #include <iostream>
 #include <fstream>
-#include <istream>
+
 using namespace std;
 
 int main() {
+
     ifstream turma("turma.txt");
     ifstream notas("notas.txt");
     ofstream saida("notas-turma.txt");
@@ -12,22 +13,14 @@ int main() {
     float nota;
     
     while (turma >> matricula){  //enquanto tiver lendo os arquivos
-        //cout << matricula << endl;
+        notas >> matricula_comparativo;
+        cout << matricula_comparativo << endl;
 
-    
-            while(notas >> matricula_comparativo){
-                if(matricula != matricula_comparativo){
-                    notas >> nota;
-                    
-                }else{
-                cout << nota << endl;
-            }
-    
-        
+        if(matricula == matricula_comparativo){
+            notas >> nota;
+            saida << matricula << " " << nota << endl;
+        }
+
     }
-    
-    
-    
-
-  return 0;
+    return 0;
 }
