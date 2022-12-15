@@ -13,14 +13,14 @@ int main()
 
     entrada >> tempo;
 
-    tempo = tempo/1000;
+    tempo =  float (tempo/1000);
     hora = tempo/3600;
     tempo = tempo - hora*3600;
     min = tempo/60;
     tempo = tempo - min*60;
     seg = tempo;
 
-
-    saida << hora << ":" << min << ":" << fixed << setprecision(3) << seg;
+    saida << fixed << setprecision(3);
+    saida << hora << ":" << min << ":" << seg;
     return 0;
 }

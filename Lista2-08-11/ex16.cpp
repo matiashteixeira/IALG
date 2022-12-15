@@ -1,6 +1,7 @@
 #include <iostream>
 #include <fstream>
 #include <iomanip>
+
 using namespace std;
 
 int main() 
@@ -13,9 +14,10 @@ int main()
     x4 = preco/4;
     x10 = 0.11*preco;
 
-    saida << avista << fixed << setprecision(1) << endl;
-    saida << x4 << fixed << setprecision(2) << endl;
-    saida << x10 << fixed << setprecision(2) << endl;
+    saida << fixed << setprecision(2);
+    saida << avista << endl;
+    saida << x4 << endl;
+    saida << x10;
 
 
     return 0;
