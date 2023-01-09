@@ -3,20 +3,25 @@
 using namespace std;
 
 int main(){
-    int N, cont = 1, quantidade_alunos = 0;
+    int N, quantidade_alunos = 0;
     cin >> N;
     int matricula[N];
+    bool aluno = false;
 
     for(int i =0;i<N;i++) 
         cin >> matricula[i];
     
-    while(cont <= N){
-        if(matricula[cont] == matricula[cont-1]){
-            quantidade_alunos = quantidade_alunos - 1;
+    for (int i = 0; i < (N-1); i++){
+        int j;
+        j= i+1;
+        aluno = false;
+        while(j < N && !aluno){
+            if(matricula[i] != matricula[j])
+                quantidade_alunos++;
+                aluno = true;
         }
-        quantidade_alunos++;
-        cont++;
     }
+
     cout << quantidade_alunos;
     return 0;
 }
