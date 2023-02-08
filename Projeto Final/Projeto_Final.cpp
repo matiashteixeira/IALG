@@ -9,20 +9,58 @@
 
 #include <iostream>
 #include <fstream>
-
 using namespace std;
 
-//----------------------------------Registro para leitura e escrita em binário--------------------------------------------------------
-
-struct cadastro
+struct cadastro   //Registro para leitura e escrita em binário
 {
-    string nome;
-    string rua;
-    int idade;
-    string profissao;
-    float salario;
+    string codigo;
+    string produto;
+    string situacao;
+    float valor_atual;
+    float valor_meta;
 };
 
+int tamanho_arquivo(cadastro* vetor,ifstream& fin){ //função que define o tamanho do arquivo csv
+    streampos size;
+    size = fin.tellg();
+    vetor = new cadastro [size];
+    fin.seekg(0, ios::beg);
+    fin.read((char*)&vetor, size);
+    fin.close();
+    return size;
+}
+
+void escrever_binario(cadastro* vetor,ofstream& fon,int size){
+    fon.write((char*)&vetor,size);
+}
+
+
+
+int main(){
+    cadastro* informacoes;
+    ifstream fin;
+    ofstream fon;
+
+    fin.open("base10.csv");
+
+    if(!fin.is_open()){
+        return EXIT_FAILURE;
+    }else{
+        //cout << tamanho_arquivo(vetor,fin);
+        int size = tamanho_arquivo(informacoes,fin);
+        fon.open("dados.bin", ios_base::out);
+
+        if(!fon.is_open()){
+            return EXIT_FAILURE;
+        }else{
+            escrever_binario(informacoes,fon,size);
+            cout << "oi";
+        }  
+    }
+    
+    
+}
+/*
 
 int main(){
 
@@ -55,4 +93,4 @@ int main(){
    
 }
 
-
+*/
