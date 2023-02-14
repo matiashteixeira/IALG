@@ -17,6 +17,7 @@ string le_celula(ifstream &arquivo);
 void imprimir(int tamanho, string nome_arq);
 void shell_sort_preco1(dados* vet, int tamanho, string nome_arq);
 void shell_sort_preco2(dados* vet,int tamanho,string nome_arq);
+void ordena_arquivo(string nome_arq, int tamanho, dados* vet);
 
 int main(){
     int tamanho = 0;
@@ -66,8 +67,13 @@ int main(){
                 shell_sort_preco2(vet,tamanho,"arqvsaida.bin");
         }
         else if(opcao == 4){
-            for (int i = 0; i < tamanho; i++)
-                cout << vet[i].preco1 << endl;
+            ifstream arq("base10K.bin", ios::binary | ios::in);
+            dados info;
+            for (int i = 0; i < tamanho; i++){
+                arq.read((char *)&info, sizeof(dados));
+                cout << info.descricao << " " << info.codigo_barras << " " << info.preco1 << " "; 
+                cout << info.preco2 << " " << info.status << endl;
+            }
         }
         else if(opcao == 8){
             for (int i = 0; i < tamanho; i++)
@@ -218,9 +224,9 @@ void inserir(int& tamanho){
 
 void shell_sort_preco1(dados* vet, int tamanho, string nome_arq){
     ifstream arquivo;
-    int i = 0;
+    arquivo.open(nome_arq,ios::binary | ios::in);
 
-    arquivo.open(nome_arq,ios_base::binary | ios_base::in);
+    int i = 0;
 
     while(!arquivo.eof()){
         arquivo.read((char*)&vet[i], sizeof(dados));
@@ -249,13 +255,15 @@ void shell_sort_preco1(dados* vet, int tamanho, string nome_arq){
         pos_gap--;
     }
     arquivo.close();
+
+    ordena_arquivo(nome_arq,tamanho,vet);
 }
 
 void shell_sort_preco2(dados* vet,int tamanho,string nome_arq){
-    ifstream arquivo;
-    int i = 0;
+    fstream arquivo;
+    arquivo.open(nome_arq,ios::binary | ios::in);
 
-    arquivo.open(nome_arq,ios_base::binary | ios_base::in);
+    int i = 0;
 
     while(!arquivo.eof()){
         arquivo.read((char*)&vet[i], sizeof(dados));
@@ -283,5 +291,16 @@ void shell_sort_preco2(dados* vet,int tamanho,string nome_arq){
         }
         pos_gap--;
     }
+    arquivo.close();
+
+    ordena_arquivo(nome_arq,tamanho,vet);
+}
+
+void ordena_arquivo(string nome_arq, int tamanho, dados* vet){
+    ofstream arquivo(nome_arq,ios::binary | ios::out | ios::trunc);
+    for(int k = 0; k < tamanho; k++)
+    
+        arquivo.write((const char *) &vet[k], sizeof(dados));
+    
     arquivo.close();
 }
