@@ -21,7 +21,9 @@ void ordena_arquivo(string nome_arq, int tamanho, dados* vet);
 
 int main(){
     int tamanho = 0;
-    importarcsv("base10K.csv", "arqvsaida.bin", tamanho);
+    string arquivo_csv = "base10K.csv";
+    string arquivo_bin = "arqvsaida.bin";
+    importarcsv(arquivo_csv, arquivo_bin, tamanho);
     dados* vet;
     vet = new dados[tamanho];
     
@@ -46,7 +48,7 @@ int main(){
     while(opcao != 7){
     
         if(opcao == 5)
-            imprimir(tamanho,"arqvsaida.bin");
+            imprimir(tamanho,arquivo_bin);
     
         else if(opcao == 3){
             int escolha;
@@ -62,19 +64,11 @@ int main(){
                 cin >> escolha;
             }
             if(escolha == 1)
-                shell_sort_preco1(vet,tamanho,"arqvsaida.bin");
+                shell_sort_preco1(vet,tamanho,arquivo_bin);
             else if(escolha == 2)
-                shell_sort_preco2(vet,tamanho,"arqvsaida.bin");
+                shell_sort_preco2(vet,tamanho,arquivo_bin);
         }
-        else if(opcao == 4){
-            ifstream arq("base10K.bin", ios::binary | ios::in);
-            dados info;
-            for (int i = 0; i < tamanho; i++){
-                arq.read((char *)&info, sizeof(dados));
-                cout << info.descricao << " " << info.codigo_barras << " " << info.preco1 << " "; 
-                cout << info.preco2 << " " << info.status << endl;
-            }
-        }
+        
         else if(opcao == 8){
             for (int i = 0; i < tamanho; i++)
                 cout << vet[i].preco2 << endl; 
