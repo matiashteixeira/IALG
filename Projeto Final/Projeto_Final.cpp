@@ -6,22 +6,21 @@ using namespace std;
 
 struct dados{
 
-    float preco;
+    float preco1, preco2;
     char codigo_barras[20];
-    char descricao[50];
+    char descricao[200];
     char status[10];
-    char tarja[40];
 };
 
 void importarcsv(string entrada, string saida, int& tamanho);
 string le_celula(ifstream &arquivo);
 void imprimir(int tamanho, string nome_arq);
-void shell_sort_preco(dados* vet, int tamanho, string nome_arq);
-void shell_sort_codigo(dados* vet,int tamanho,string nome_arq);
+void shell_sort_preco1(dados* vet, int tamanho, string nome_arq);
+void shell_sort_preco2(dados* vet,int tamanho,string nome_arq);
 
 int main(){
     int tamanho = 0;
-    importarcsv("base10.csv", "arqvsaida.bin", tamanho);
+    importarcsv("base10K.csv", "arqvsaida.bin", tamanho);
     dados* vet;
     vet = new dados[tamanho];
     
@@ -50,31 +49,32 @@ int main(){
     
         else if(opcao == 3){
             int escolha;
-            cout << "Deseja ordenar os medicamentos pelo preco crescente de venda ou pelo numero do codigo de barras?" <<   endl;
-            cout << "(1)Preco de venda" << endl;
-            cout << "(2)Codigo de barras" << endl;
+            cout << endl << endl;
+            cout << "Deseja ordenar os medicamentos pelo preco crescente de venda da farmacia 1 ou da farmacia 2?" <<   endl;
+            cout << "(1)Farmacia 1" << endl;
+            cout << "(2)Farmacia 2" << endl;
+            cin >> escolha;
 
             while(escolha != 1 && escolha != 2){
                 cout << "Opcao nao disponivel, digite novamente: " << endl;
                 cout << "(1)Preco de venda ou (2)Codigo de barras" << endl;
                 cin >> escolha;
             }
-     
-        if(escolha == 1){
-            shell_sort_preco(vet,tamanho,"arqvsaida.bin");
-        } else if(escolha == 2){
-            shell_sort_codigo(vet,tamanho,"arqvsaida.bin");
-
-
-
-            }
+            if(escolha == 1)
+                shell_sort_preco1(vet,tamanho,"arqvsaida.bin");
+            else if(escolha == 2)
+                shell_sort_preco2(vet,tamanho,"arqvsaida.bin");
         }
-    else if(opcao == 4){
-        for (int i = 0; i < tamanho; i++)
-        {
-            cout << vet[i].preco << endl; 
+        else if(opcao == 4){
+            for (int i = 0; i < tamanho; i++)
+                cout << vet[i].preco1 << endl;
         }
-    }
+        else if(opcao == 8){
+            for (int i = 0; i < tamanho; i++)
+                cout << vet[i].preco2 << endl; 
+        }
+    
+        
 
     cout << endl << "Digite uma nova opcao: " << endl;
     cin >> opcao;
@@ -90,20 +90,27 @@ void importarcsv(string entrada, string saida, int& tamanho){
     ofstream arqvsaida(saida.c_str(), ios::binary);
     while (!arquivo.eof()) // Lê o arquivo até o final do mesmo
     {
-        string preco = le_celula(arquivo); 
-        int posicao = preco.find(',');
-        if (posicao < preco.length())
-            preco.replace(preco.find(','), 1, ".");
-        base10.preco = stof(preco);
-        string codigo_barras = le_celula(arquivo);
-        strcpy(base10.codigo_barras, codigo_barras.c_str());
         string descricao = le_celula(arquivo);
         strcpy(base10.descricao, descricao.c_str());
+
+        string codigo_barras = le_celula(arquivo);
+        strcpy(base10.codigo_barras, codigo_barras.c_str());
+    
+        string preco1 = le_celula(arquivo); 
+        int posicao1 = preco1.find(',');
+        if (posicao1 < preco1.length())
+            preco1.replace(preco1.find(','), 1, ".");
+        base10.preco1 = stof(preco1);
+
+        string preco2 = le_celula(arquivo); 
+        int posicao2 = preco2.find(',');
+        if (posicao2 < preco2.length())
+            preco2.replace(preco2.find(','), 1, ".");
+        base10.preco2 = stof(preco2);
+        
         string status = le_celula(arquivo);
         strcpy(base10.status, status.c_str());
-        string tarja = le_celula(arquivo);
-        strcpy(base10.tarja, tarja.c_str());
-
+        
         arqvsaida.write((const char *)&base10, sizeof(dados)); // Convertendo para arquivo binário
         tamanho++;
     }
@@ -151,8 +158,8 @@ void imprimir(int tamanho, string nome_arq){
      
     if(sim_nao == 1){
         while(arquivo.read((char*) &med, sizeof(dados))){
-        cout << med.preco << " " << med.codigo_barras << " " << med.descricao << " "; 
-        cout << med.status << " " << med.tarja << endl;
+        cout << med.descricao << " " << med.codigo_barras << " " << med.preco1 << " "; 
+        cout << med.preco2 << " " << med.status << endl;
         }
     }else if(sim_nao == 2){
         cout << "O vetor tem " << tamanho << " medicamentos" << endl << endl;
@@ -163,8 +170,8 @@ void imprimir(int tamanho, string nome_arq){
 
         arquivo.seekg((inicio-1)*sizeof(dados));
         while(arquivo.read((char*) &med, sizeof(dados)) && fim-inicio >= cont){
-            cout << med.preco << " " << med.codigo_barras << " " << med.descricao << " "; 
-            cout << med.status << " " << med.tarja << endl;
+            cout << med.descricao << " " << med.codigo_barras << " " << med.preco1 << " "; 
+            cout << med.preco2 << " " << med.status << endl;
             cont++;
         }
     }
@@ -209,7 +216,7 @@ void inserir(int& tamanho){
 }
 */
 
-void shell_sort_preco(dados* vet, int tamanho, string nome_arq){
+void shell_sort_preco1(dados* vet, int tamanho, string nome_arq){
     ifstream arquivo;
     int i = 0;
 
@@ -231,20 +238,20 @@ void shell_sort_preco(dados* vet, int tamanho, string nome_arq){
         int gap = gaps[pos_gap];
 
         for (int i = gap; i < tamanho; i++) {
-            valor.preco = vet[i].preco;
+            valor.preco1 = vet[i].preco1;
             j = i;
-            while ((j >= gap) and (valor.preco < vet[j - gap].preco)) {
+            while ((j >= gap) and (valor.preco1 < vet[j - gap].preco1)) {
                 vet[j] = vet[j - gap];
                 j = j - gap;
             }
-            vet[j].preco = valor.preco;
+            vet[j].preco1 = valor.preco1;
         }
         pos_gap--;
     }
     arquivo.close();
 }
 
-void shell_sort_codigo(dados* vet,int tamanho,string nome_arq){
+void shell_sort_preco2(dados* vet,int tamanho,string nome_arq){
     ifstream arquivo;
     int i = 0;
 
@@ -266,13 +273,13 @@ void shell_sort_codigo(dados* vet,int tamanho,string nome_arq){
         int gap = gaps[pos_gap];
 
         for (int i = gap; i < tamanho; i++) {
-            valor.preco = vet[i].preco;
+            valor.preco2 = vet[i].preco2;
             j = i;
-            while ((j >= gap) and (valor.preco < vet[j - gap].preco)) {
+            while ((j >= gap) and (valor.preco2 < vet[j - gap].preco2)) {
                 vet[j] = vet[j - gap];
                 j = j - gap;
             }
-            vet[j].preco = valor.preco;
+            vet[j].preco2 = valor.preco2;
         }
         pos_gap--;
     }
