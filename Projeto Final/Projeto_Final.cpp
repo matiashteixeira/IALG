@@ -18,11 +18,12 @@ string le_celula(ifstream &arquivo);
 void imprimir(string nome_arq);
 void shell_sort_preco1(string nome_arq);
 void shell_sort_preco2(string nome_arq);
-void ordena_arquivo(string nome_arq, int tamanho, dados* vet);
+void escreve_arquivo(string nome_arq, int tamanho, dados* vet);
 void buscar_codigo(string nome_arq);
 void buscar_descricao(string nome_arq);
 int tamanho_arq(string nome_arq);
 void menu();
+void excluir(string nome_arq);
 
 int main(){
     int opcao;
@@ -38,7 +39,8 @@ int main(){
         if(opcao == 1)
             //inserir(tamanho,arquivo_bin);
             cout << "oi";
-        //else if(opcao == 2)
+        else if(opcao == 2)
+            excluir(arquivo_bin);
         else if(opcao == 3){
             int escolha;
             cout << endl << endl;
@@ -230,7 +232,7 @@ void shell_sort_preco1(string nome_arq){
     }
     arquivo.close();
 
-    ordena_arquivo(nome_arq,tamanho,vet);
+    escreve_arquivo(nome_arq,tamanho,vet);
     delete[] vet;
 }
 
@@ -273,11 +275,11 @@ void shell_sort_preco2(string nome_arq){
     }
     arquivo.close();
 
-    ordena_arquivo(nome_arq,tamanho,vet);
+    escreve_arquivo(nome_arq,tamanho,vet);
     delete[] vet;
 }
 
-void ordena_arquivo(string nome_arq, int tamanho, dados* vet){
+void escreve_arquivo(string nome_arq, int tamanho, dados* vet){
     ofstream arquivo(nome_arq,ios::binary | ios::out | ios::trunc);
     for(int k = 0; k < tamanho; k++)
         arquivo.write((const char *) &vet[k], sizeof(dados));
@@ -285,8 +287,45 @@ void ordena_arquivo(string nome_arq, int tamanho, dados* vet){
     arquivo.close();
 }
 
+void excluir(string nome_arq){
+    ifstream arquivo (nome_arq, ios::in | ios::binary);
+    int tamanho = tamanho_arq(nome_arq);
+    tamanho--;
+
+    char codigo_buscado[20];
+    cout << "Digite o codigo de barras que deseja excluir: "; 
+    cin >> codigo_buscado;
+
+    int cont = 0, posicao = -1, aux = 0;
+    dados procura;
+    dados* vet;
+    vet = new dados[tamanho];
+    
+    while ((cont < tamanho)){
+        arquivo.seekg(cont*sizeof(dados));
+        arquivo.read((char*) &procura, sizeof(dados));
+        if (strcmp(codigo_buscado,procura.codigo_barras)==0)
+            posicao = cont;
+        else{
+            vet[aux] = procura;
+            aux++;
+        }
+        cont++;
+    }
+
+    arquivo.close();
+
+    if(posicao == -1)
+        cout << endl << "Codigo de barras nao encontrado!";
+    else{
+        escreve_arquivo(nome_arq,tamanho,vet);
+        cout << endl << "Medicamento excluido com sucesso!";
+    }
+    delete[] vet;
+}
+
 void buscar_codigo(string nome_arq){
-    ifstream arquivo (nome_arq, ios::in);
+    ifstream arquivo (nome_arq, ios::in | ios::binary);
     int qtd_dados = tamanho_arq(nome_arq);
 
     char codigo_buscado[20];
@@ -319,7 +358,7 @@ void buscar_codigo(string nome_arq){
 }
 
 void buscar_descricao(string nome_arq){
-    ifstream arquivo (nome_arq, ios::in);
+    ifstream arquivo (nome_arq, ios::in | ios::binary);
     int qtd_dados = tamanho_arq(nome_arq);
 
     char descricao_buscada[200];
