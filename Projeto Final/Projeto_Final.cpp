@@ -5,29 +5,37 @@
 using namespace std; 
 
 struct dados{
-
-    bool apagado = false;
     float preco1, preco2;
     char codigo_barras[20];
     char descricao[200];
     char status[10];
 };
 
+//Auxiliares----------------------------------------------------
+void menu();
+void clear_terminal();
+int tamanho_arq(string nome_arq);
+void apaga_escreve(string nome_arq, int tamanho, dados* vet);
+void escreve_final(string nome_arq, dados procura);
+//Importa-------------------------------------------------------
 void importarcsv(string entrada, string saida);
 string le_celula(ifstream &arquivo);
-void imprimir(string nome_arq);
+//Ordena--------------------------------------------------------
+void ordenar(string nome_arq);
 void shell_sort_preco1(string nome_arq);
 void shell_sort_preco2(string nome_arq);
-void escreve_arquivo(string nome_arq, int tamanho, dados* vet);
+//Imprime-------------------------------------------------------
+void imprimir(string nome_arq);
+//Busca---------------------------------------------------------
 void buscar(string nome_arq);
 void buscar_codigo(string nome_arq);
 void buscar_descricao(string nome_arq);
-int tamanho_arq(string nome_arq);
-void menu();
+//Exclui--------------------------------------------------------
 void excluir(string nome_arq);
-void verifica_inserir(string nome_arq);
-void ordenar(string nome_arq);
-void clear_terminal();
+//Insere--------------------------------------------------------
+void inserir(string nome_arq);
+
+
 
 int main(){
     int opcao;
@@ -42,7 +50,7 @@ int main(){
     while(opcao != 7){
         switch (opcao){
         case 1:
-            verifica_inserir(arquivo_bin);
+            inserir(arquivo_bin);
             break;
 
         case 2:
@@ -54,7 +62,7 @@ int main(){
             break;
 
         case 4:
-            verifica_inserir(arquivo_bin);
+            inserir(arquivo_bin);
             break;
 
         case 5:
@@ -261,7 +269,7 @@ void shell_sort_preco1(string nome_arq){
     }
     arquivo.close();
 
-    escreve_arquivo(nome_arq,tamanho,vet);
+    apaga_escreve(nome_arq,tamanho,vet);
     delete[] vet;
 }
 
@@ -304,11 +312,11 @@ void shell_sort_preco2(string nome_arq){
     }
     arquivo.close();
 
-    escreve_arquivo(nome_arq,tamanho,vet);
+    apaga_escreve(nome_arq,tamanho,vet);
     delete[] vet;
 }
 
-void escreve_arquivo(string nome_arq, int tamanho, dados* vet){
+void apaga_escreve(string nome_arq, int tamanho, dados* vet){
     ofstream arquivo(nome_arq,ios::binary | ios::out | ios::trunc);
     for(int k = 0; k < tamanho; k++)
         arquivo.write((const char *) &vet[k], sizeof(dados));
@@ -347,7 +355,7 @@ void excluir(string nome_arq){
     if(posicao == -1)
         cout << endl << "Codigo de barras nao encontrado!";
     else{
-        escreve_arquivo(nome_arq,tamanho,vet);
+        apaga_escreve(nome_arq,tamanho,vet);
         cout << endl << "Medicamento excluido com sucesso!";
     }
     delete[] vet;
@@ -441,9 +449,9 @@ int tamanho_arq(string nome_arq){
     return qtd_dados;
 }
 
-void verifica_inserir(string nome_arq){
-    ifstream arquivo (nome_arq, ios::in | ios::binary);
-    int qtd_dados = tamanho_arq(nome_arq);
+void inserir(string nome_arq){
+    ifstream arquivo(nome_arq, ios::in | ios::binary);
+    int escolha, qtd_dados = tamanho_arq(nome_arq);
 
     bool digitou = 0;
 
@@ -466,12 +474,38 @@ void verifica_inserir(string nome_arq){
 
         if(posicao == -1){
             digitou = 1;
-
+            strcpy(procura.codigo_barras,codigo_inserir);
+            cout << endl << "Informe a descricao: ";
+            cin.ignore();
+            cin.getline(procura.descricao,sizeof(char[200]));
+            cout << endl << "Informe o preco na farmacia 1: ";
+            cin >> procura.preco1;
+            cout << endl << "Informe o preco na farmacia 2: ";
+            cin >> procura.preco2;
+            cout << endl << "Informe o status - Positiva ou Negativa: "; 
+            cin >> procura.status;
+            escreve_final(nome_arq,procura);
+            cout << endl << "Medicamento registrado com sucesso!";
         }
         else{
-            cout << endl << "Medicamento já está no sistema, tente novamente!" << endl;
+            cout << endl << "Medicamento ja esta no sistema, tente novamente!" << endl;
+            clear_terminal();
         }
     }
+
+    cout << endl << endl <<"Digite (1) para voltar ao menu ou (2) para inserir outro medicamento:";
+    cin >> escolha;
+
+    while(escolha != 1 && escolha != 2){
+        cout << "Opcao nao disponivel, digite novamente: " << endl;
+        cout << "(1)menu ou (2)inserir outro medicamento" << endl;
+        cin >> escolha;
+    }
+    clear_terminal();
+    if(escolha == 2)
+        inserir(nome_arq);
+
+
 }
 
 void ordenar(string nome_arq){
@@ -535,4 +569,10 @@ void buscar(string nome_arq){
     clear_terminal();
     if(escolha == 2)
         buscar(nome_arq);
+}
+
+void escreve_final(string nome_arq, dados procura){
+    ofstream arquivo(nome_arq,ios::binary | ios::ate | ios::app);
+    arquivo.write((const char *) &procura, sizeof(dados));
+    arquivo.close();
 }
