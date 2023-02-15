@@ -19,11 +19,15 @@ void imprimir(string nome_arq);
 void shell_sort_preco1(string nome_arq);
 void shell_sort_preco2(string nome_arq);
 void escreve_arquivo(string nome_arq, int tamanho, dados* vet);
+void buscar(string nome_arq);
 void buscar_codigo(string nome_arq);
 void buscar_descricao(string nome_arq);
 int tamanho_arq(string nome_arq);
 void menu();
 void excluir(string nome_arq);
+void verifica_inserir(string nome_arq);
+void ordenar(string nome_arq);
+void clear_terminal();
 
 int main(){
     int opcao;
@@ -33,51 +37,41 @@ int main(){
     
     menu();
     cin >> opcao;
+    clear_terminal();
 
     while(opcao != 7){
-    
-        if(opcao == 1)
-            //inserir(tamanho,arquivo_bin);
-            cout << "oi";
-        else if(opcao == 2)
+        switch (opcao){
+        case 1:
+            verifica_inserir(arquivo_bin);
+            break;
+
+        case 2:
             excluir(arquivo_bin);
-        else if(opcao == 3){
-            int escolha;
-            cout << endl << endl;
-            cout << "Deseja ordenar os medicamentos pelo preco crescente de venda da farmacia 1 ou da farmacia 2?" <<   endl;
-            cout << "(1)Farmacia 1" << endl;
-            cout << "(2)Farmacia 2" << endl;
-            cin >> escolha;
+            break;
 
-            while(escolha != 1 && escolha != 2){
-                cout << "Opcao nao disponivel, digite novamente: " << endl;
-                cout << "(1)Preco de venda ou (2)Codigo de barras" << endl;
-                cin >> escolha;
-            }
-            if(escolha == 1)
-                shell_sort_preco1(arquivo_bin);
-            else if(escolha == 2)
-                shell_sort_preco2(arquivo_bin);
-        }
-        else if(opcao == 5)
+        case 3:
+            ordenar(arquivo_bin);
+            break;
+
+        case 4:
+            verifica_inserir(arquivo_bin);
+            break;
+
+        case 5:
             imprimir(arquivo_bin);
-        
-        else if(opcao == 6){
-            bool escolha;
-            cout << endl << "Digite o campo do medicamento que deseja fazer a busca:" << endl;
-            cout << "(0) Codigo de barras;" << endl;
-            cout << "(1) Descricao;" << endl;
-            cin >> escolha;
+            break;
 
-            if(escolha)
-                buscar_descricao(arquivo_bin);
-            else
-                buscar_codigo(arquivo_bin);
-        }
+        case 6:
+            buscar(arquivo_bin);
+            break;
         
-    cout << endl;
-    menu();
-    cin >> opcao;
+        default:
+            cout << "Opcao invalida, tente novamente!" << endl;
+            break;
+        }
+        menu();
+        cin >> opcao;
+        clear_terminal();
     }
     return 0;
 }
@@ -85,16 +79,31 @@ int main(){
 void menu(){
     cout << endl << endl;
     cout << "Arquivo de dados da farmacia" << endl << endl;
-    cout << " ****MENU**** " << endl << endl;
-    cout << "Escolha uma das opcoes: " << endl;
-    cout << "(1)Inserir - Insere dados referentes a um ou mais medicamentos" << endl;
-    cout << "(2)Excluir - Exclui algum medicamento" << endl;
-    cout << "(3)Ordenar - Ordena os medicamentos existentes no arquivo" << endl;
-    cout << "(4)Alterar - Altera algum campo de um registro" << endl;
-    cout << "(5)Imprimir - Exibe as informacoes dos arquivos desejados na tela" << endl;
-    cout << "(6)Buscar - Busca os dados de um medicamento existente a partir de um filtro" << endl;
-    cout << "(7)Sair - Encerra o programa" << endl << endl;
+    cout << " ************************************MENU************************************ " << endl << endl;
+    cout << "Escolha uma das opcoes: " << endl << endl;
+    cout << "(1) Inserir - Insere dados referentes a um ou mais medicamentos" << endl;
+    cout << " ---------------------------------------------------------------------------- " << endl;
+    cout << "(2) Excluir - Exclui algum medicamento" << endl;
+    cout << " ---------------------------------------------------------------------------- " << endl;
+    cout << "(3) Ordenar - Ordena os medicamentos existentes no arquivo" << endl;
+    cout << " ---------------------------------------------------------------------------- " << endl;
+    cout << "(4) Alterar - Altera algum campo de um registro" << endl;
+    cout << " ---------------------------------------------------------------------------- " << endl;
+    cout << "(5) Imprimir - Exibe as informacoes dos arquivos desejados na tela" << endl;
+    cout << " ---------------------------------------------------------------------------- " << endl;
+    cout << "(6) Buscar - Busca os dados de um medicamento existente a partir de um filtro" << endl;
+    cout << " ---------------------------------------------------------------------------- " << endl;
+    cout << "(7) Sair - Encerra o programa" << endl;
+    cout << " ---------------------------------------------------------------------------- " << endl << endl;
     cout << "Digite a opcao desejada: ";
+}
+
+void clear_terminal(){
+    #if defined(_WIN32) || defined(_WIN64)
+        system("cls");
+    #else defined(__linux__) || defined(__unix__)
+        system("clear");
+    #endif
 }
 
 void importarcsv(string entrada, string saida){
@@ -157,31 +166,39 @@ void imprimir(string nome_arq){
     int tamanho = tamanho_arq(nome_arq);
 
     dados med;
-    int sim_nao, inicio, fim, cont = 0;
+    int escolha, inicio, fim, cont = 0;
     ifstream arquivo;
     arquivo.open(nome_arq, ios_base::binary | ios_base::in);
 
     cout << "Deseja imprimir o arquivo todo na tela?" << endl;
     cout << "(1)sim ou (2)nao" << endl;
-    cin >> sim_nao;
+    cin >> escolha;
 
-    while(sim_nao != 1 && sim_nao != 2){
+    while(escolha != 1 && escolha != 2){
         cout << "Opcao nao disponivel, digite novamente: " << endl;
         cout << "(1)sim ou (2)nao" << endl;
-        cin >> sim_nao;
+        cin >> escolha;
     }
      
-    if(sim_nao == 1){
+    if(escolha == 1){
         while(arquivo.read((char*) &med, sizeof(dados))){
         cout << med.descricao << " " << med.codigo_barras << " " << med.preco1 << " "; 
         cout << med.preco2 << " " << med.status << endl;
         }
-    }else if(sim_nao == 2){
+    }else if(escolha == 2){
         cout << "O vetor tem " << tamanho << " medicamentos" << endl << endl;
         cout << "Deseja imprimir a partir de qual medicamento? " << endl;
         cin >> inicio;
         cout << "Deseja imprimir ate qual medicamento? " << endl;
         cin >> fim;
+
+        while(fim < inicio or fim > tamanho){
+            cout << "Nao e permitido imprimir ate esse medicamento!" << endl;
+            cout << "OBS: Verifique o valor digitado e a quantidade de dados do arquivo" << endl << endl;
+            cout << "Digite novamente ate qual medicamento deseja imprimir: ";
+            cin >> fim;
+        }
+        clear_terminal();
 
         arquivo.seekg((inicio-1)*sizeof(dados));
         while(arquivo.read((char*) &med, sizeof(dados)) && fim-inicio >= cont){
@@ -191,6 +208,18 @@ void imprimir(string nome_arq){
         }
     }
     arquivo.close();
+
+    cout << endl << endl <<"Digite (1) para voltar ao menu ou (2) para imprimir outros medicamentos:";
+    cin >> escolha;
+
+    while(escolha != 1 && escolha != 2){
+        cout << "Opcao nao disponivel, digite novamente: " << endl;
+        cout << "(1)menu ou (2)imprimir outros medicamentos" << endl;
+        cin >> escolha;
+    }
+    clear_terminal();
+    if(escolha == 2)
+        imprimir(nome_arq);
 }
 
 void shell_sort_preco1(string nome_arq){
@@ -289,7 +318,7 @@ void escreve_arquivo(string nome_arq, int tamanho, dados* vet){
 
 void excluir(string nome_arq){
     ifstream arquivo (nome_arq, ios::in | ios::binary);
-    int tamanho = tamanho_arq(nome_arq);
+    int tamanho = tamanho_arq(nome_arq), escolha;
     tamanho--;
 
     char codigo_buscado[20];
@@ -322,6 +351,18 @@ void excluir(string nome_arq){
         cout << endl << "Medicamento excluido com sucesso!";
     }
     delete[] vet;
+
+    cout << endl << endl <<"Digite (1) para voltar ao menu ou (2) para excluir outros medicamentos:";
+    cin >> escolha;
+
+    while(escolha != 1 && escolha != 2){
+        cout << "Opcao nao disponivel, digite novamente: " << endl;
+        cout << "(1)menu ou (2)excluir outros medicamentos" << endl;
+        cin >> escolha;
+    }
+    clear_terminal();
+    if(escolha == 2)
+        excluir(nome_arq);
 }
 
 void buscar_codigo(string nome_arq){
@@ -398,4 +439,100 @@ int tamanho_arq(string nome_arq){
     arquivo.close();
 
     return qtd_dados;
+}
+
+void verifica_inserir(string nome_arq){
+    ifstream arquivo (nome_arq, ios::in | ios::binary);
+    int qtd_dados = tamanho_arq(nome_arq);
+
+    bool digitou = 0;
+
+    while(!digitou){
+        char codigo_inserir[20];
+        cout << "Digite o codigo de barras que deseja inserir: "; 
+        cin >> codigo_inserir;
+
+        int cont = 0, posicao = -1;
+        
+        dados procura;
+        
+        while ((cont < qtd_dados) and (posicao ==-1)){
+            arquivo.seekg(cont*sizeof(dados));
+            arquivo.read((char*) &procura, sizeof(dados));
+            if (strcmp(codigo_inserir,procura.codigo_barras)==0)
+                posicao = cont;
+            cont++;
+        }
+
+        if(posicao == -1){
+            digitou = 1;
+
+        }
+        else{
+            cout << endl << "Medicamento já está no sistema, tente novamente!" << endl;
+        }
+    }
+}
+
+void ordenar(string nome_arq){
+    int escolha;
+    cout << endl << endl;
+    cout << "Deseja ordenar os medicamentos pelo preco crescente de venda da farmacia 1 ou da farmacia 2?" <<   endl;
+    cout << "(1)Farmacia 1" << endl;
+    cout << "(2)Farmacia 2" << endl;
+    cin >> escolha;
+
+    while(escolha != 1 && escolha != 2){
+        cout << "Opcao nao disponivel, digite novamente: " << endl;
+        cout << "(1)Preco de venda ou (2)Codigo de barras" << endl;
+        cin >> escolha;
+    }
+    
+    if(escolha == 1)
+        shell_sort_preco1(nome_arq);
+    else
+        shell_sort_preco2(nome_arq);
+
+    cout << endl << endl <<"Digite (1) para voltar ao menu ou (2) para ordenar novamente os medicamentos:";
+    cin >> escolha;
+
+    while(escolha != 1 && escolha != 2){
+        cout << "Opcao nao disponivel, digite novamente: " << endl;
+        cout << "(1)menu ou (2)ordenar novamente os medicamentos" << endl;
+        cin >> escolha;
+    }
+    clear_terminal();
+    if(escolha == 2)
+        ordenar(nome_arq);
+}
+
+void buscar(string nome_arq){
+    int escolha;
+    cout << endl << "Digite o campo do medicamento que deseja fazer a busca:" << endl;
+    cout << "(1) Codigo de barras;" << endl;
+    cout << "(2) Descricao;" << endl;
+    cin >> escolha;
+
+    while(escolha != 1 && escolha != 2){
+        cout << "Opcao nao disponivel, digite novamente: " << endl;
+        cout << "(1)Codigo de barras ou (2)Descricao" << endl;
+        cin >> escolha;
+    }
+    
+    if(escolha == 1)
+        buscar_codigo(nome_arq);
+    else
+        buscar_descricao(nome_arq);
+
+    cout << endl << endl <<"Digite (1) para voltar ao menu ou (2) para buscar outros medicamentos:";
+    cin >> escolha;
+
+    while(escolha != 1 && escolha != 2){
+        cout << "Opcao nao disponivel, digite novamente: " << endl;
+        cout << "(1)menu ou (2)buscar outros medicamentos" << endl;
+        cin >> escolha;
+    }
+    clear_terminal();
+    if(escolha == 2)
+        buscar(nome_arq);
 }
