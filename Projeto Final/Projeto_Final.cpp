@@ -11,12 +11,6 @@ struct dados{
     char status[10];
 };
 
-//Auxiliares----------------------------------------------------
-void menu();
-void clear_terminal();
-int tamanho_arq(string nome_arq);
-void apaga_escreve(string nome_arq, int tamanho, dados* vet);
-void escreve_final(string nome_arq, dados procura);
 //Importa-------------------------------------------------------
 void importarcsv(string entrada, string saida);
 string le_celula(ifstream &arquivo);
@@ -34,8 +28,12 @@ void buscar_descricao(string nome_arq);
 void excluir(string nome_arq);
 //Insere--------------------------------------------------------
 void inserir(string nome_arq);
-
-
+//Auxiliares----------------------------------------------------
+void menu();
+void clear_terminal();
+int tamanho_arq(string nome_arq);
+void apaga_escreve(string nome_arq, int tamanho, dados* vet);
+void escreve_final(string nome_arq, dados procura);
 
 int main(){
     int opcao;
@@ -84,6 +82,7 @@ int main(){
     return 0;
 }
 
+//Auxiliares-----------------------------------------------------
 void menu(){
     cout << endl << endl;
     cout << "Arquivo de dados da farmacia" << endl << endl;
@@ -114,6 +113,30 @@ void clear_terminal(){
     #endif
 }
 
+void apaga_escreve(string nome_arq, int tamanho, dados* vet){
+    ofstream arquivo(nome_arq,ios::binary | ios::out | ios::trunc);
+    for(int k = 0; k < tamanho; k++)
+        arquivo.write((const char *) &vet[k], sizeof(dados));
+        
+    arquivo.close();
+}
+
+void escreve_final(string nome_arq, dados procura){
+    ofstream arquivo(nome_arq,ios::binary | ios::ate | ios::app);
+    arquivo.write((const char *) &procura, sizeof(dados));
+    arquivo.close();
+}
+
+int tamanho_arq(string nome_arq){
+    ifstream arquivo(nome_arq, ios::ate);
+    long int tamanho_arquivo = arquivo.tellg();
+    int qtd_dados = int (tamanho_arquivo/sizeof(dados));
+    arquivo.close();
+
+    return qtd_dados;
+}
+
+//Importa--------------------------------------------------------
 void importarcsv(string entrada, string saida){
     ifstream arquivo(entrada.c_str());
     dados base10;
@@ -169,6 +192,7 @@ string le_celula(ifstream &arquivo)
     return celula;
 }
 
+//Imprime--------------------------------------------------------
 void imprimir(string nome_arq){
 
     int tamanho = tamanho_arq(nome_arq);
@@ -228,6 +252,39 @@ void imprimir(string nome_arq){
     clear_terminal();
     if(escolha == 2)
         imprimir(nome_arq);
+}
+
+//Ordena---------------------------------------------------------
+void ordenar(string nome_arq){
+    int escolha;
+    cout << endl << endl;
+    cout << "Deseja ordenar os medicamentos pelo preco crescente de venda da farmacia 1 ou da farmacia 2?" <<   endl;
+    cout << "(1)Farmacia 1" << endl;
+    cout << "(2)Farmacia 2" << endl;
+    cin >> escolha;
+
+    while(escolha != 1 && escolha != 2){
+        cout << "Opcao nao disponivel, digite novamente: " << endl;
+        cout << "(1)Preco de venda ou (2)Codigo de barras" << endl;
+        cin >> escolha;
+    }
+    
+    if(escolha == 1)
+        shell_sort_preco1(nome_arq);
+    else
+        shell_sort_preco2(nome_arq);
+
+    cout << endl << endl <<"Digite (1) para voltar ao menu ou (2) para ordenar novamente os medicamentos:";
+    cin >> escolha;
+
+    while(escolha != 1 && escolha != 2){
+        cout << "Opcao nao disponivel, digite novamente: " << endl;
+        cout << "(1)menu ou (2)ordenar novamente os medicamentos" << endl;
+        cin >> escolha;
+    }
+    clear_terminal();
+    if(escolha == 2)
+        ordenar(nome_arq);
 }
 
 void shell_sort_preco1(string nome_arq){
@@ -316,14 +373,7 @@ void shell_sort_preco2(string nome_arq){
     delete[] vet;
 }
 
-void apaga_escreve(string nome_arq, int tamanho, dados* vet){
-    ofstream arquivo(nome_arq,ios::binary | ios::out | ios::trunc);
-    for(int k = 0; k < tamanho; k++)
-        arquivo.write((const char *) &vet[k], sizeof(dados));
-        
-    arquivo.close();
-}
-
+//Exclui---------------------------------------------------------
 void excluir(string nome_arq){
     ifstream arquivo (nome_arq, ios::in | ios::binary);
     int tamanho = tamanho_arq(nome_arq), escolha;
@@ -371,6 +421,38 @@ void excluir(string nome_arq){
     clear_terminal();
     if(escolha == 2)
         excluir(nome_arq);
+}
+
+//Busca----------------------------------------------------------
+void buscar(string nome_arq){
+    int escolha;
+    cout << endl << "Digite o campo do medicamento que deseja fazer a busca:" << endl;
+    cout << "(1) Codigo de barras;" << endl;
+    cout << "(2) Descricao;" << endl;
+    cin >> escolha;
+
+    while(escolha != 1 && escolha != 2){
+        cout << "Opcao nao disponivel, digite novamente: " << endl;
+        cout << "(1)Codigo de barras ou (2)Descricao" << endl;
+        cin >> escolha;
+    }
+    
+    if(escolha == 1)
+        buscar_codigo(nome_arq);
+    else
+        buscar_descricao(nome_arq);
+
+    cout << endl << endl <<"Digite (1) para voltar ao menu ou (2) para buscar outros medicamentos:";
+    cin >> escolha;
+
+    while(escolha != 1 && escolha != 2){
+        cout << "Opcao nao disponivel, digite novamente: " << endl;
+        cout << "(1)menu ou (2)buscar outros medicamentos" << endl;
+        cin >> escolha;
+    }
+    clear_terminal();
+    if(escolha == 2)
+        buscar(nome_arq);
 }
 
 void buscar_codigo(string nome_arq){
@@ -440,15 +522,7 @@ void buscar_descricao(string nome_arq){
     }
 }
 
-int tamanho_arq(string nome_arq){
-    ifstream arquivo(nome_arq, ios::ate);
-    long int tamanho_arquivo = arquivo.tellg();
-    int qtd_dados = int (tamanho_arquivo/sizeof(dados));
-    arquivo.close();
-
-    return qtd_dados;
-}
-
+//Inserir-------------------------------------------------------
 void inserir(string nome_arq){
     ifstream arquivo(nome_arq, ios::in | ios::binary);
     int escolha, qtd_dados = tamanho_arq(nome_arq);
@@ -508,71 +582,8 @@ void inserir(string nome_arq){
 
 }
 
-void ordenar(string nome_arq){
-    int escolha;
-    cout << endl << endl;
-    cout << "Deseja ordenar os medicamentos pelo preco crescente de venda da farmacia 1 ou da farmacia 2?" <<   endl;
-    cout << "(1)Farmacia 1" << endl;
-    cout << "(2)Farmacia 2" << endl;
-    cin >> escolha;
 
-    while(escolha != 1 && escolha != 2){
-        cout << "Opcao nao disponivel, digite novamente: " << endl;
-        cout << "(1)Preco de venda ou (2)Codigo de barras" << endl;
-        cin >> escolha;
-    }
-    
-    if(escolha == 1)
-        shell_sort_preco1(nome_arq);
-    else
-        shell_sort_preco2(nome_arq);
 
-    cout << endl << endl <<"Digite (1) para voltar ao menu ou (2) para ordenar novamente os medicamentos:";
-    cin >> escolha;
 
-    while(escolha != 1 && escolha != 2){
-        cout << "Opcao nao disponivel, digite novamente: " << endl;
-        cout << "(1)menu ou (2)ordenar novamente os medicamentos" << endl;
-        cin >> escolha;
-    }
-    clear_terminal();
-    if(escolha == 2)
-        ordenar(nome_arq);
-}
 
-void buscar(string nome_arq){
-    int escolha;
-    cout << endl << "Digite o campo do medicamento que deseja fazer a busca:" << endl;
-    cout << "(1) Codigo de barras;" << endl;
-    cout << "(2) Descricao;" << endl;
-    cin >> escolha;
 
-    while(escolha != 1 && escolha != 2){
-        cout << "Opcao nao disponivel, digite novamente: " << endl;
-        cout << "(1)Codigo de barras ou (2)Descricao" << endl;
-        cin >> escolha;
-    }
-    
-    if(escolha == 1)
-        buscar_codigo(nome_arq);
-    else
-        buscar_descricao(nome_arq);
-
-    cout << endl << endl <<"Digite (1) para voltar ao menu ou (2) para buscar outros medicamentos:";
-    cin >> escolha;
-
-    while(escolha != 1 && escolha != 2){
-        cout << "Opcao nao disponivel, digite novamente: " << endl;
-        cout << "(1)menu ou (2)buscar outros medicamentos" << endl;
-        cin >> escolha;
-    }
-    clear_terminal();
-    if(escolha == 2)
-        buscar(nome_arq);
-}
-
-void escreve_final(string nome_arq, dados procura){
-    ofstream arquivo(nome_arq,ios::binary | ios::ate | ios::app);
-    arquivo.write((const char *) &procura, sizeof(dados));
-    arquivo.close();
-}
