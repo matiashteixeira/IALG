@@ -15,7 +15,7 @@ struct dados{
 void importarcsv(string entrada, string saida);
 string le_celula(ifstream &arquivo);
 //Ordena--------------------------------------------------------
-void ordenar(string nome_arq);
+void ordenar(string nome_arq, bool& shell1, bool& shell2);
 void shell_sort_preco1(string nome_arq);
 void shell_sort_preco2(string nome_arq);
 //Imprime-------------------------------------------------------
@@ -27,7 +27,7 @@ void buscar_descricao(string nome_arq);
 //Exclui--------------------------------------------------------
 void excluir(string nome_arq);
 //Insere--------------------------------------------------------
-void inserir(string nome_arq);
+void inserir(string nome_arq, bool& sheel1, bool& sheel2);
 //Auxiliares----------------------------------------------------
 void menu();
 void clear_terminal();
@@ -37,6 +37,7 @@ void escreve_final(string nome_arq, dados procura);
 
 int main(){
     int opcao;
+    bool shell1 = 0, shell2 = 0;
     string arquivo_csv = "base10K.csv";
     string arquivo_bin = "arqvsaida.bin";
     importarcsv(arquivo_csv, arquivo_bin);
@@ -48,7 +49,7 @@ int main(){
     while(opcao != 7){
         switch (opcao){
         case 1:
-            inserir(arquivo_bin);
+            inserir(arquivo_bin, shell1, shell2);
             break;
 
         case 2:
@@ -56,11 +57,11 @@ int main(){
             break;
 
         case 3:
-            ordenar(arquivo_bin);
+            ordenar(arquivo_bin,shell1,shell2);
             break;
 
         case 4:
-            inserir(arquivo_bin);
+            inserir(arquivo_bin,shell1,shell2);
             break;
 
         case 5:
@@ -123,7 +124,7 @@ void apaga_escreve(string nome_arq, int tamanho, dados* vet){
 }
 
 void escreve_final(string nome_arq, dados procura){
-    ofstream arquivo(nome_arq,ios::binary | ios::ate | ios::app);
+    ofstream arquivo(nome_arq,ios::binary | ios::app | ios::ate);
     arquivo.write((const char *) &procura, sizeof(dados));
     arquivo.close();
 }
@@ -256,7 +257,7 @@ void imprimir(string nome_arq){
 }
 
 //Ordena---------------------------------------------------------
-void ordenar(string nome_arq){
+void ordenar(string nome_arq, bool& shell1, bool& shell2){
     int escolha;
     cout << "Deseja ordenar os medicamentos pelo preco crescente de venda da farmacia 1 ou da farmacia 2?" <<   endl;
     cout << "(1)Farmacia 1" << endl;
@@ -269,10 +270,14 @@ void ordenar(string nome_arq){
         cin >> escolha;
     }
     
-    if(escolha == 1)
+    if(escolha == 1){
         shell_sort_preco1(nome_arq);
-    else
+        shell1 = 1;
+    }
+    else{
         shell_sort_preco2(nome_arq);
+        shell2 = 1;
+    }
     
     cout << endl << "Medicamentos ordenados com sucesso!";
 
@@ -286,24 +291,20 @@ void ordenar(string nome_arq){
     }
     clear_terminal();
     if(escolha == 2)
-        ordenar(nome_arq);
+        ordenar(nome_arq,shell1,shell2);
 }
 
 void shell_sort_preco1(string nome_arq){
-    ifstream arquivo;
-    arquivo.open(nome_arq,ios::binary | ios::in);
+    ifstream arquivo(nome_arq,ios::binary | ios::in);
 
     int tamanho = tamanho_arq(nome_arq);
-    
+
     dados* vet;
     vet = new dados[tamanho];
-    int i = 0;
 
-    while(!arquivo.eof()){
+    for (int i = 0; i < tamanho; i++)
         arquivo.read((char*)&vet[i], sizeof(dados));
-        i++;
-    }
-
+    
     
     int gaps[9] = {1, 4, 10, 23, 57, 132, 301, 701, 1750};
     int pos_gap = 8;
@@ -316,37 +317,32 @@ void shell_sort_preco1(string nome_arq){
         int gap = gaps[pos_gap];
 
         for (int k = gap; k < tamanho; k++) {
-            valor.preco1 = vet[k].preco1;
+            valor = vet[k];
             j = k;
             while ((j >= gap) and (valor.preco1 < vet[j - gap].preco1)) {
                 vet[j] = vet[j - gap];
                 j = j - gap;
             }
-            vet[j].preco1 = valor.preco1;
+            vet[j] = valor;
         }
         pos_gap--;
     }
     arquivo.close();
-
+    
     apaga_escreve(nome_arq,tamanho,vet);
     delete[] vet;
 }
 
 void shell_sort_preco2(string nome_arq){
-    fstream arquivo;
-    arquivo.open(nome_arq,ios::binary | ios::in);
+    ifstream arquivo(nome_arq,ios::binary | ios::in);
 
     int tamanho = tamanho_arq(nome_arq);
 
     dados* vet;
     vet = new dados[tamanho];
-    int i = 0;
 
-    while(!arquivo.eof()){
+    for (int i = 0; i < tamanho; i++)
         arquivo.read((char*)&vet[i], sizeof(dados));
-    i++;
-    }
-
 
     int gaps[9] = {1, 4, 10, 23, 57, 132, 301, 701, 1750};
     int pos_gap = 8;
@@ -359,13 +355,13 @@ void shell_sort_preco2(string nome_arq){
         int gap = gaps[pos_gap];
 
         for (int k = gap; k < tamanho; k++) {
-            valor.preco2 = vet[k].preco2;
+            valor = vet[k];
             j = k;
             while ((j >= gap) and (valor.preco2 < vet[j - gap].preco2)) {
                 vet[j] = vet[j - gap];
                 j = j - gap;
             }
-            vet[j].preco2 = valor.preco2;
+            vet[j] = valor;
         }
         pos_gap--;
     }
@@ -525,7 +521,7 @@ void buscar_descricao(string nome_arq){
 }
 
 //Inserir-------------------------------------------------------
-void inserir(string nome_arq){
+void inserir(string nome_arq, bool& sheel1, bool& sheel2){
     ifstream arquivo(nome_arq, ios::in | ios::binary);
     int escolha, qtd_dados = tamanho_arq(nome_arq);
 
@@ -562,6 +558,12 @@ void inserir(string nome_arq){
             cin >> procura.status;
             escreve_final(nome_arq,procura);
             cout << endl << "Medicamento registrado com sucesso!";
+
+            if(sheel1)
+                shell_sort_preco1(nome_arq);
+            else if(sheel2)
+                shell_sort_preco2(nome_arq);
+                
         }
         else{
             cout << endl << "Medicamento ja esta no sistema, tente novamente!" << endl;
@@ -579,8 +581,6 @@ void inserir(string nome_arq){
     }
     clear_terminal();
     if(escolha == 2)
-        inserir(nome_arq);
-
-
+        inserir(nome_arq,sheel1,sheel2);
 }
 
