@@ -79,6 +79,7 @@ int main(){
         cin >> opcao;
         clear_terminal();
     }
+    cout << endl << endl << "---------------------Obrigado por usar nosso programa!---------------------" << endl << endl;
     return 0;
 }
 
@@ -257,7 +258,6 @@ void imprimir(string nome_arq){
 //Ordena---------------------------------------------------------
 void ordenar(string nome_arq){
     int escolha;
-    cout << endl << endl;
     cout << "Deseja ordenar os medicamentos pelo preco crescente de venda da farmacia 1 ou da farmacia 2?" <<   endl;
     cout << "(1)Farmacia 1" << endl;
     cout << "(2)Farmacia 2" << endl;
@@ -273,6 +273,8 @@ void ordenar(string nome_arq){
         shell_sort_preco1(nome_arq);
     else
         shell_sort_preco2(nome_arq);
+    
+    cout << endl << "Medicamentos ordenados com sucesso!";
 
     cout << endl << endl <<"Digite (1) para voltar ao menu ou (2) para ordenar novamente os medicamentos:";
     cin >> escolha;
@@ -581,9 +583,4 @@ void inserir(string nome_arq){
 
 
 }
-
-
-
-
-
 
