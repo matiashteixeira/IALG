@@ -1,7 +1,7 @@
 #include <iostream>
 #include <fstream>
 #include <string.h>
-#include <iomanip>
+
 using namespace std; 
 
 struct dados{
@@ -140,12 +140,8 @@ int tamanho_arq(string nome_arq){
     arquivo.seekg(ios::beg);
 
     dados aux;
-    for (int i = 0; i < qtd_dados; i++){
+    for (int i = 0; i < qtd_dados; i++)
         arquivo.read((char *) &aux, sizeof(dados));
-        if(aux.apagado)
-            qtd_dados--;
-        
-    }
 
     arquivo.close();
     return qtd_dados;
@@ -236,7 +232,7 @@ void exportarcsv(string nome_arq){
         cin >> escolha;
     }
     clear_terminal();
-    if(escolha == 2) //Executa a funcão novamente no caso do usuário digitar escolha = "2"
+    if(escolha == '2') //Executa a funcão novamente no caso do usuário digitar escolha = "2"
         exportarcsv(nome_arq);
 }
 
@@ -303,7 +299,7 @@ void imprimir(string nome_arq){
         cin >> escolha; 
     }
     clear_terminal();
-    if(escolha == 2) //Executa a funcão novamente no caso do usuário digitar escolha = "2"
+    if(escolha == '2') //Executa a funcão novamente no caso do usuário digitar escolha = "2"
         imprimir(nome_arq);
 }
 
@@ -341,16 +337,25 @@ void ordenar(string nome_arq, bool& shell1, bool& shell2){
         cin >> escolha; 
     }
     clear_terminal();
-    if(escolha == 2) //Executa a funcão novamente no caso do usuário digitar escolha = "2"
+    if(escolha == '2') //Executa a funcão novamente no caso do usuário digitar escolha = "2"
         ordenar(nome_arq,shell1,shell2);
 }
 
 void shell_sort_preco1(string nome_arq){
     ifstream arquivo(nome_arq,ios::binary | ios::in); //Abre o arquivo para leitura binária
 
-    int tamanho = tamanho_arq(nome_arq); //Informa o tamanho do arquivo
+    int tamanho = tamanho_arq(nome_arq), deletados = 0; //Informa o tamanho do arquivo
 
     dados aux;
+    
+    for (int i = 0; i < tamanho; i++){
+        arquivo.read((char *)&aux,sizeof(dados));
+        if(aux.apagado)
+        deletados++;
+    }
+
+    arquivo.seekg(ios::beg);
+    tamanho -= deletados;
     dados* vet;
     vet = new dados[tamanho];
 
@@ -390,9 +395,18 @@ void shell_sort_preco1(string nome_arq){
 void shell_sort_preco2(string nome_arq){
     ifstream arquivo(nome_arq,ios::binary | ios::in); //Abre o arquivo para leitura binária
 
-    int tamanho = tamanho_arq(nome_arq); //Informa o tamanho do arquivo
+    int tamanho = tamanho_arq(nome_arq), deletados = 0; //Informa o tamanho do arquivo
 
     dados aux;
+    
+    for (int i = 0; i < tamanho; i++){
+        arquivo.read((char *)&aux,sizeof(dados));
+        if(aux.apagado)
+        deletados++;
+    }
+
+    arquivo.seekg(ios::beg);
+    tamanho -= deletados;
     dados* vet;
     vet = new dados[tamanho];
 
@@ -455,9 +469,9 @@ void excluir(string nome_arq){
 
     if(posicao == -1)
         cout << endl << "Codigo de barras nao encontrado!";
-    else
+    else{
         cout << endl << "Medicamento excluido com sucesso!";
-    
+    }
     
     cout << endl << endl <<"Digite (1) para voltar ao menu ou (2) para excluir outros medicamentos:";
     cin >> escolha;
@@ -468,7 +482,7 @@ void excluir(string nome_arq){
         cin >> escolha;
     }
     clear_terminal();
-    if(escolha == 2)
+    if(escolha == '2')
         excluir(nome_arq);
 }
 
@@ -480,13 +494,13 @@ void buscar(string nome_arq){
     cout << "(2) Descricao;" << endl;
     cin >> escolha; //Permite o usuário escolher dentre as opções
 
-    while(escolha != 1 && escolha != 2){ //Impede que outros valores sejam inseridos
+    while(escolha != '1' && escolha != '2'){ //Impede que outros valores sejam inseridos
         cout << "Opcao nao disponivel, digite novamente: " << endl;
         cout << "(1)Codigo de barras ou (2)Descricao" << endl;
         cin >> escolha;
     }
     
-    if(escolha == 1) 
+    if(escolha == '1') 
         buscar_codigo(nome_arq); //Busca um medicamento pelo código do mesmo
     else
         buscar_descricao(nome_arq); //Busca um medicamento pela descrição do mesmo
@@ -500,7 +514,7 @@ void buscar(string nome_arq){
         cin >> escolha;
     }
     clear_terminal();
-    if(escolha == 2) //Executa a funcão novamente no caso do usuário digitar escolha = "2"
+    if(escolha == '2') //Executa a funcão novamente no caso do usuário digitar escolha = "2"
         buscar(nome_arq);
 }
 
@@ -633,6 +647,6 @@ void inserir(string nome_arq, bool& sheel1, bool& sheel2){
         cin >> escolha;
     }
     clear_terminal();
-    if(escolha == 2)
+    if(escolha == '2')
         inserir(nome_arq,sheel1,sheel2);
 }
