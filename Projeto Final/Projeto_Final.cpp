@@ -38,7 +38,7 @@ void apaga_escreve(string nome_arq, int tamanho, dados* vet); //Apaga todo o arq
 void escreve_final(string nome_arq, dados procura); //Escreve novos dados no final do arquivo
 
 int main(){
-    int opcao; //Variável que o usuário insere para decidir qual função irá utilizar
+    char opcao; //Variável que o usuário insere para decidir qual função irá utilizar
     bool shell1 = 0, shell2 = 0; //Variáveis que verificam se o arquivo já foi ordenado (tanto pelo preço da farmácia 1 e farmácia 2)
     string arquivo_csv = "base10K.csv"; //Nome do arquivo .csv
     string arquivo_bin = "arqvsaida.bin"; //Nome do arquivo .bin
@@ -48,29 +48,29 @@ int main(){
     cin >> opcao;
     clear_terminal();
 
-    while(opcao != 7){ //Permite que o programa seja executado enquanto o usuário não inserir a opção (7) referente a sair do programa
+    while(opcao != '7'){ //Permite que o programa seja executado enquanto o usuário não inserir a opção (7) referente a sair do programa
         switch (opcao){ //Define qual função o programa irá rodar conforme o digitado pelo usuário
-        case 1:
+        case '1':
             inserir(arquivo_bin, shell1, shell2);
             break;
 
-        case 2:
+        case '2':
             excluir(arquivo_bin);
             break;
 
-        case 3:
+        case '3':
             ordenar(arquivo_bin,shell1,shell2);
             break;
 
-        case 4:
+        case '4':
             imprimir(arquivo_bin);
             break;
 
-        case 5:
+        case '5':
             buscar(arquivo_bin);
             break;
 
-        case 6:
+        case '6':
             exportarcsv(arquivo_bin);
             break;
         
@@ -232,6 +232,10 @@ void exportarcsv(string nome_arq){
         cin >> escolha;
     }
     clear_terminal();
+
+    arq_entrada.close();
+    arquivo_csv.close();
+    
     if(escolha == '2') //Executa a funcão novamente no caso do usuário digitar escolha = "2"
         exportarcsv(nome_arq);
 }
@@ -482,6 +486,8 @@ void excluir(string nome_arq){
         cin >> escolha;
     }
     clear_terminal();
+    arquivo.close();
+
     if(escolha == '2')
         excluir(nome_arq);
 }
@@ -549,6 +555,8 @@ void buscar_codigo(string nome_arq){
         cout << "Preco farmacia 1: " << procura.preco1 << endl;
         cout << "Preco farmacia 2: " << procura.preco2 << endl;
         cout << "Status: " << procura.status << endl;
+
+        arquivo.close();
     }
 }
 
@@ -584,6 +592,8 @@ void buscar_descricao(string nome_arq){
         cout << "Preco farmacia 1: " << procura.preco1 << endl;
         cout << "Preco farmacia 2: " << procura.preco2 << endl;
         cout << "Status: " << procura.status << endl;
+
+        arquivo.close();
     }
 }
 
@@ -647,6 +657,7 @@ void inserir(string nome_arq, bool& sheel1, bool& sheel2){
         cin >> escolha;
     }
     clear_terminal();
+    arquivo.close();
     if(escolha == '2')
         inserir(nome_arq,sheel1,sheel2);
 }
