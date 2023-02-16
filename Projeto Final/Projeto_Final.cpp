@@ -1,7 +1,14 @@
+//---------------------------------------------//
+//SISTEMA DE CADASTRO EM ARQUIVOS COM ORDENAÇÃO//
+//                                             //
+//Ana Clara Gomes - 202210591 - 22A            //
+//Mateus Henrique Teixeira - 202210162 - 22A   //
+//Camila Vitória Silva Lopes - 202210169 - 22A //
+//---------------------------------------------//
+
 #include <iostream>
 #include <fstream>
 #include <string.h>
-
 using namespace std; 
 
 struct dados{
@@ -235,7 +242,7 @@ void exportarcsv(string nome_arq){
 
     arq_entrada.close();
     arquivo_csv.close();
-    
+
     if(escolha == '2') //Executa a funcão novamente no caso do usuário digitar escolha = "2"
         exportarcsv(nome_arq);
 }
@@ -247,9 +254,17 @@ void imprimir(string nome_arq){
 
     dados med;
     char escolha;
-    int inicio, fim, cont = 0;
+    int inicio, fim, cont = 0, deletados = 0;
     ifstream arquivo;
     arquivo.open(nome_arq, ios_base::binary | ios_base::in);
+
+    for (int i = 0; i < tamanho; i++){ //Define a quantidade de dados deletados
+        arquivo.read((char *)&med,sizeof(dados));
+        if(med.apagado)
+        deletados++;
+    }
+
+    arquivo.seekg(ios::beg);
 
     cout << "Deseja imprimir o arquivo todo na tela?" << endl;
     cout << "(1)sim ou (2)nao" << endl;
@@ -269,7 +284,7 @@ void imprimir(string nome_arq){
             }   
         }
     }else if(escolha == '2'){
-        cout << "O vetor tem " << tamanho << " medicamentos" << endl << endl; //Informa a quantidade de medicamentos no arquivo
+        cout << "O vetor tem " << tamanho << " medicamentos, sendo que desses, " << deletados << " foram deletados" << endl << endl; //Informa a quantidade de medicamentos no arquivo
         cout << "Deseja imprimir a partir de qual medicamento? " << endl;
         cin >> inicio; //Variável que determina a partir de qual medicamento será impresso na tela
         cout << "Deseja imprimir ate qual medicamento? " << endl;
@@ -352,7 +367,7 @@ void shell_sort_preco1(string nome_arq){
 
     dados aux;
     
-    for (int i = 0; i < tamanho; i++){
+    for (int i = 0; i < tamanho; i++){ //Define a quantidade de dados deletados
         arquivo.read((char *)&aux,sizeof(dados));
         if(aux.apagado)
         deletados++;
@@ -403,7 +418,7 @@ void shell_sort_preco2(string nome_arq){
 
     dados aux;
     
-    for (int i = 0; i < tamanho; i++){
+    for (int i = 0; i < tamanho; i++){ //Define a quantidade de dados deletados
         arquivo.read((char *)&aux,sizeof(dados));
         if(aux.apagado)
         deletados++;
