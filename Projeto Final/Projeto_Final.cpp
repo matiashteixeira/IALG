@@ -42,7 +42,7 @@ void menu(); //Imprime na tela as opções disponíveis para os usuários
 void clear_terminal(); //Limpa o terminal
 int tamanho_arq(string nome_arq); //Informa o tamanho atual do arquivo binário
 void apaga_escreve(string nome_arq, int tamanho, dados* vet); //Apaga todo o arquivo para reescrevê-lo novamente com os dados desejados
-void escreve(string nome_arq, dados procura); //Escreve novos dados no final do arquivo
+void escreve_final(string nome_arq, dados procura); //Escreve novos dados no final do arquivo
 
 int main(){
     char opcao; //Variável que o usuário insere para decidir qual função irá utilizar
@@ -132,8 +132,8 @@ void apaga_escreve(string nome_arq, int tamanho, dados* vet){
     arquivo.close();
 }
 
-void escreve(string nome_arq, dados procura){
-    fstream arquivo(nome_arq,ios::binary | ios::app); //Abre o arquino para escrita binário e insere dados no final sem apagar dados
+void escreve_final(string nome_arq, dados procura){
+    ofstream arquivo(nome_arq,ios::binary | ios::app | ios::ate); //Abre o arquino para escrita binário e insere dados no final sem apagar dados
     arquivo.write((const char *) &procura, sizeof(dados)); //escreve no arquivo os dados do registro "procura"
 
     arquivo.close();
@@ -639,7 +639,7 @@ void inserir(string nome_arq, bool& sheel1, bool& sheel2){
             cin >> procura.preco2;
             cout << endl << "Informe o status - Positiva ou Negativa: "; 
             cin >> procura.status;
-            escreve(nome_arq,procura); //Escreve o registro no final do arquivo
+            escreve_final(nome_arq,procura); //Escreve no final do arquivo
             cout << endl << "Medicamento registrado com sucesso!";
 
             if(sheel1)
