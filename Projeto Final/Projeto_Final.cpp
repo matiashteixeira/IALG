@@ -31,8 +31,8 @@ void shell_sort_preco2(string nome_arq); //Ordena pelo preço da Farmácia 2
 void imprimir(string nome_arq); //Imprime na tela os medicamentos desejados
 //Busca---------------------------------------------------------
 void buscar(string nome_arq); //Chama as funções de busca
-void buscar_codigo(string nome_arq); //Busca pelo código do medicamento
-void buscar_descricao(string nome_arq); //Busca pela descrição do medicamento
+void buscar_codigo(string nome_arq); 
+void buscar_descricao(string nome_arq); 
 //Exclui--------------------------------------------------------
 void excluir(string nome_arq); //Exlui o medicamento desejado a partir do código de barras
 //Insere--------------------------------------------------------
@@ -42,13 +42,13 @@ void menu(); //Imprime na tela as opções disponíveis para os usuários
 void clear_terminal(); //Limpa o terminal
 int tamanho_arq(string nome_arq); //Informa o tamanho atual do arquivo binário
 void apaga_escreve(string nome_arq, int tamanho, dados* vet); //Apaga todo o arquivo para reescrevê-lo novamente com os dados desejados
-void escreve_final(string nome_arq, dados procura); //Escreve novos dados no final do arquivo
+void escreve(string nome_arq, dados procura); //Escreve novos dados no final do arquivo
 
 int main(){
     char opcao; //Variável que o usuário insere para decidir qual função irá utilizar
     bool shell1 = 0, shell2 = 0; //Variáveis que verificam se o arquivo já foi ordenado (tanto pelo preço da farmácia 1 e farmácia 2)
-    string arquivo_csv = "base10K.csv"; //Nome do arquivo .csv
-    string arquivo_bin = "arqvsaida.bin"; //Nome do arquivo .bin
+    string arquivo_csv = "base10K.csv"; 
+    string arquivo_bin = "arqvsaida.bin"; 
     importarcsv(arquivo_csv, arquivo_bin); 
     
     menu();
@@ -117,9 +117,9 @@ void menu(){
 }
 
 void clear_terminal(){
-    #if defined(_WIN32) || defined(_WIN64)
+    #if defined _WIN32
         system("cls");
-    #else defined(__linux__) || defined(__unix__)
+    #else
         system("clear");
     #endif
 }
@@ -132,8 +132,8 @@ void apaga_escreve(string nome_arq, int tamanho, dados* vet){
     arquivo.close();
 }
 
-void escreve_final(string nome_arq, dados procura){
-    ofstream arquivo(nome_arq,ios::binary | ios::app | ios::ate); //Abre o arquino para escrita binário e insere dados no final sem apagar dados
+void escreve(string nome_arq, dados procura){
+    fstream arquivo(nome_arq,ios::binary | ios::app); //Abre o arquino para escrita binário e insere dados no final sem apagar dados
     arquivo.write((const char *) &procura, sizeof(dados)); //escreve no arquivo os dados do registro "procura"
 
     arquivo.close();
@@ -143,12 +143,6 @@ int tamanho_arq(string nome_arq){
     ifstream arquivo(nome_arq, ios::ate); //Abre o arquivo e posiciona no final para leitura
     long int tamanho_arquivo = arquivo.tellg(); //Define o tamanho do arquivo em bytes
     int qtd_dados = int (tamanho_arquivo/sizeof(dados)); //Define a quantidade de dados do arquivo (qtd bytes do arquivo/qtd bytes do registro)
-    
-    arquivo.seekg(ios::beg);
-
-    dados aux;
-    for (int i = 0; i < qtd_dados; i++)
-        arquivo.read((char *) &aux, sizeof(dados));
 
     arquivo.close();
     return qtd_dados;
@@ -192,27 +186,27 @@ string le_celula(ifstream &arquivo)
 {
     string celula;
     char c;
-    arquivo.read(&c, 1); //pula o ponto e vírgula (;) que separa as informações de uma linha do csv
+    arquivo.read(&c, 1); //pula o ponto e vírgula (;) que separa as informações de uma linha do .csv
     if (c == '\"'){
-        arquivo.read(&c, 1); // elimina a aspas
+        arquivo.read(&c, 1); // elimina as aspas
         do{
-            celula += c;
-            arquivo.read(&c, 1);
+            celula += c; //Adiciona caracter a caracter na string "celula"
+            arquivo.read(&c, 1); //Lê cada caracter do arquivo
         } while (c != '\"');
-        arquivo.read(&c, 1); // elimina o ";"
+        arquivo.read(&c, 1); // elimina as aspas
     }
-    else
+    else //Caso não tenha aspas
     {
         do{
-            celula += c;
-            arquivo.read(&c, 1);
-        } while (c != ';' and c != '\n' and !arquivo.eof());
+            celula += c; //Adicona caracter a caracter na string "celula"
+            arquivo.read(&c, 1); //Lê cada caracter do arquivo
+        } while (c != ';' and c != '\n' and !arquivo.eof()); //Lê o arquivo até q o ponteiro de leitura encontre ";", quebra de linha ou o fim do arquivo
     }
     return celula;
 }
 
 void exportarcsv(string nome_arq){
-    string csv; //Nome do arquivo .csv para exportação
+    string csv; 
     cout << "Digite o nome do arquivo .csv para exportar a base de dados: ";
     cin >> csv; //Usuário informa o nome do arquivo .csv de exportação
 
@@ -225,7 +219,7 @@ void exportarcsv(string nome_arq){
     for (int i = 0; i < tamanho; i++){
         arq_entrada.read((char *) &aux, sizeof(dados)); //Lê o arquivo binário e copia os dados para o registro "aux"
         arquivo_csv << aux.descricao << ";" << aux.codigo_barras << ";" << aux.preco1 << ";"
-                    << aux.preco2 << ";" << aux.status << "\n"; //Escreve no arquivo csv os dados, sendo que o (;) = mudança de colunas e o (\n) = linhas
+                    << aux.preco2 << ";" << aux.status << "\n"; //Escreve no arquivo csv os dados, sendo que o (;) = mudança de colunas e o (\n) = quebras de linha
     }
 
     cout << endl << "Base de dados exportada com sucesso!";
@@ -261,10 +255,10 @@ void imprimir(string nome_arq){
     for (int i = 0; i < tamanho; i++){ //Define a quantidade de dados deletados
         arquivo.read((char *)&med,sizeof(dados));
         if(med.apagado)
-        deletados++;
+            deletados++;
     }
 
-    arquivo.seekg(ios::beg);
+    arquivo.seekg(ios::beg); //Posiciona o ponteiro de leitura no início
 
     cout << "Deseja imprimir o arquivo todo na tela?" << endl;
     cout << "(1)sim ou (2)nao" << endl;
@@ -284,7 +278,7 @@ void imprimir(string nome_arq){
             }   
         }
     }else if(escolha == '2'){
-        cout << "O vetor tem " << tamanho << " medicamentos, sendo que desses, " << deletados << " foram deletados" << endl << endl; //Informa a quantidade de medicamentos no arquivo
+        cout << "O arquivo tem " << tamanho << " medicamentos, sendo que desses, " << deletados << " foram deletados" << endl << endl; //Informa a quantidade de medicamentos no arquivo
         cout << "Deseja imprimir a partir de qual medicamento? " << endl;
         cin >> inicio; //Variável que determina a partir de qual medicamento será impresso na tela
         cout << "Deseja imprimir ate qual medicamento? " << endl;
@@ -463,7 +457,7 @@ void shell_sort_preco2(string nome_arq){
 
 //Exclui---------------------------------------------------------
 void excluir(string nome_arq){
-    fstream arquivo(nome_arq);
+    fstream arquivo(nome_arq); //Abre o arquivo para leitura e escrita
 
     int tamanho = tamanho_arq(nome_arq), cont = 0, posicao = -1;
     char escolha;
@@ -474,36 +468,36 @@ void excluir(string nome_arq){
     cin >> codigo_buscado;
 
 
-    while ((cont < tamanho+1) and (posicao ==-1)){
-        arquivo.seekg(cont*sizeof(dados));
-        arquivo.read((char*) &procura, sizeof(dados));
-        if ((strcmp(codigo_buscado,procura.codigo_barras)==0) && (!procura.apagado)){
+    while ((cont < tamanho) and (posicao ==-1)){ //Lê todo o arquivo ou para quando o código buscado for encontrado
+        arquivo.seekg(cont*sizeof(dados)); //Posiciona o ponteiro de leitura
+        arquivo.read((char*) &procura, sizeof(dados)); //Lê o arquivo
+        if ((strcmp(codigo_buscado,procura.codigo_barras)==0) && (!procura.apagado)){ //Verifica se os códigos são iguais e se o arquivo não está com o marcador de apagado
             posicao = cont;
-            arquivo.seekp(-static_cast<int>(sizeof(dados)), ios::cur);
-            procura.apagado = 1;
-            arquivo.write((char *) &procura,sizeof(dados));
+            arquivo.seekp(-static_cast<int>(sizeof(dados)), ios::cur); //Posiciona o ponteiro de escrita dentro do registro com o código buscado
+            procura.apagado = 1; //Altera o marcador "apagado" para true (1)
+            arquivo.write((char *) &procura,sizeof(dados)); //Escreve o marcador alterado no arquivo
         }
         cont++;
     }
 
-    if(posicao == -1)
+    if(posicao == -1) //Caso o código não exista no arquivo
         cout << endl << "Codigo de barras nao encontrado!";
-    else{
+    else{ 
         cout << endl << "Medicamento excluido com sucesso!";
     }
     
     cout << endl << endl <<"Digite (1) para voltar ao menu ou (2) para excluir outros medicamentos:";
-    cin >> escolha;
+    cin >> escolha; //Variável que permite o usuário voltar para o menu ou repitir a função executada
 
-    while(escolha != '1' && escolha != '2'){
+    while(escolha != '1' && escolha != '2'){ //Impede que outros valores sejam inseridos
         cout << endl << "Opcao nao disponivel, digite novamente: " << endl;
         cout << "(1)menu ou (2)excluir outros medicamentos" << endl;
-        cin >> escolha;
+        cin >> escolha; 
     }
     clear_terminal();
     arquivo.close();
 
-    if(escolha == '2')
+    if(escolha == '2') //Executa a funcão novamente no caso do usuário digitar escolha = "2"
         excluir(nome_arq);
 }
 
@@ -551,9 +545,9 @@ void buscar_codigo(string nome_arq){
     dados procura;
     
     while ((cont < qtd_dados) and (posicao ==-1)){ //Percorre todo o arquivo até que o código buscado seja encontrado
-        arquivo.seekg(cont*sizeof(dados)); //reposiciona o ponteiro de leitura a cada leitura
+        arquivo.seekg(cont*sizeof(dados)); //Reposiciona o ponteiro de leitura a cada leitura
         arquivo.read((char*) &procura, sizeof(dados)); //Lê os dados do arquivo
-        if ((strcmp(codigo_buscado,procura.codigo_barras)==0) && (!procura.apagado)) //Faz a comparação entre vetores (char) para verificar a igualdade entre os cógigos de barra 
+        if ((strcmp(codigo_buscado,procura.codigo_barras)==0) && (!procura.apagado)) //Verifica se os códigos são iguais e se o arquivo não está com o marcador de apagado
             posicao = cont; //Define a posição no arquivo do código de barras procurado
         cont++;
     }
@@ -588,9 +582,9 @@ void buscar_descricao(string nome_arq){
     dados procura;
     
     while ((cont < qtd_dados) and (posicao ==-1)){ //Percorre todo o arquivo até que a descrição buscada seja encontrada
-        arquivo.seekg(cont*sizeof(dados)); //reposiciona o ponteiro de leitura a cada leitura
+        arquivo.seekg(cont*sizeof(dados)); //Reposiciona o ponteiro de leitura a cada leitura
         arquivo.read((char*) &procura, sizeof(dados)); //Lê os dados do arquivo
-        if ((strcmp(descricao_buscada,procura.descricao)==0) && (!procura.apagado)) //Faz a comparação entre vetores (char) para verificar a igualdade entre as descrições 
+        if ((strcmp(descricao_buscada,procura.descricao)==0) && (!procura.apagado)) //Verifica se os códigos são iguais e se o arquivo não está com o marcador de apagado
             posicao = cont; //Define a posição no arquivo da descrição procurada
         cont++;
     }
@@ -617,10 +611,7 @@ void inserir(string nome_arq, bool& sheel1, bool& sheel2){
     ifstream arquivo(nome_arq, ios::in | ios::binary); //Abre o arquivo para leitura binária
      
     int qtd_dados = tamanho_arq(nome_arq); //Informa o tamanho do arquivo
-
-    bool digitou = 0; //V
-
-    while(!digitou){
+    
         char codigo_inserir[20];
         cout << "Digite o codigo de barras que deseja inserir: "; 
         cin >> codigo_inserir;
@@ -629,17 +620,16 @@ void inserir(string nome_arq, bool& sheel1, bool& sheel2){
         
         dados procura;
         
-        while ((cont < qtd_dados) and (posicao ==-1)){
-            arquivo.seekg(cont*sizeof(dados));
-            arquivo.read((char*) &procura, sizeof(dados));
-            if (strcmp(codigo_inserir,procura.codigo_barras)==0)
-                posicao = cont;
+        while ((cont < qtd_dados) and (posicao ==-1)){ //Lê todo o arquivo ou para quando o código buscado for encontrado
+            arquivo.seekg(cont*sizeof(dados)); //Posiciona o ponteiro de leitura
+            arquivo.read((char*) &procura, sizeof(dados)); //Lê o arquivo
+            if (strcmp(codigo_inserir,procura.codigo_barras)==0 and !procura.apagado) //Verifica se os códigos são iguais e se o arquivo não está com o marcador de apagado
+                posicao = cont; //Define a posição no arquivo do código de barras que se deseja inserir
             cont++;
         }
 
-        if(posicao == -1){
-            digitou = 1;
-            strcpy(procura.codigo_barras,codigo_inserir);
+        if(posicao == -1){ //Caso o medicamento não esteja cadastrado
+            strcpy(procura.codigo_barras,codigo_inserir); //Copia o código digitado para o registro "procura"
             cout << endl << "Informe a descricao: ";
             cin.ignore();
             cin.getline(procura.descricao,sizeof(char[200]));
@@ -649,7 +639,7 @@ void inserir(string nome_arq, bool& sheel1, bool& sheel2){
             cin >> procura.preco2;
             cout << endl << "Informe o status - Positiva ou Negativa: "; 
             cin >> procura.status;
-            escreve_final(nome_arq,procura);
+            escreve(nome_arq,procura); //Escreve o registro no final do arquivo
             cout << endl << "Medicamento registrado com sucesso!";
 
             if(sheel1)
@@ -660,19 +650,19 @@ void inserir(string nome_arq, bool& sheel1, bool& sheel2){
         }
         else
             cout << endl << "Medicamento ja esta no sistema, tente novamente!" << endl << endl;
-    }
+    
 
     char escolha;
     cout << endl << endl <<"Digite (1) para voltar ao menu ou (2) para inserir outro medicamento:";
-    cin >> escolha;
+    cin >> escolha; //Variável que permite o usuário voltar para o menu ou repitir a função executada
 
-    while(escolha != '1' && escolha != '2'){
+    while(escolha != '1' && escolha != '2'){ //Impede que outros valores sejam inseridos
         cout << endl << "Opcao nao disponivel, digite novamente: " << endl;
         cout << "(1)menu ou (2)inserir outro medicamento" << endl;
         cin >> escolha;
     }
     clear_terminal();
     arquivo.close();
-    if(escolha == '2')
+    if(escolha == '2') //Executa a funcão novamente no caso do usuário digitar escolha = "2"
         inserir(nome_arq,sheel1,sheel2);
 }
