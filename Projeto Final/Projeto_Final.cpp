@@ -249,8 +249,7 @@ void imprimir(string nome_arq){
     dados med;
     char escolha;
     int inicio, fim, cont = 0, deletados = 0;
-    ifstream arquivo;
-    arquivo.open(nome_arq, ios_base::binary | ios_base::in);
+    ifstream arquivo(nome_arq, ios_base::binary | ios_base::in);
 
     for (int i = 0; i < tamanho; i++){ //Define a quantidade de dados deletados
         arquivo.read((char *)&med,sizeof(dados));
@@ -633,9 +632,9 @@ void inserir(string nome_arq, bool& sheel1, bool& sheel2){
             cout << endl << "Informe a descricao: ";
             cin.ignore();
             cin.getline(procura.descricao,sizeof(char[200]));
-            cout << endl << "Informe o preco na farmacia 1: ";
+            cout << endl << "Informe o preco na farmacia 1 (Utilize ponto (.) em vez de virgula (,)!): ";
             cin >> procura.preco1;
-            cout << endl << "Informe o preco na farmacia 2: ";
+            cout << endl << "Informe o preco na farmacia 2 (Utilize ponto (.) em vez de virgula (,)!): ";
             cin >> procura.preco2;
             cout << endl << "Informe o status - Positiva ou Negativa: "; 
             cin >> procura.status;
