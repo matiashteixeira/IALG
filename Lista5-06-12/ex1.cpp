@@ -15,3 +15,5 @@ int main(){
 	cout << Media(num1,num2);
 	return 0;
 }
+
+asd
