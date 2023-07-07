@@ -1,12 +1,15 @@
-//---------------------------------------------//
-//SISTEMA DE CADASTRO EM ARQUIVOS COM ORDENAÇÃO//
-//                                             //
-//Ana Clara Gomes - 202210591 - 22A            //
-//Mateus Henrique Teixeira - 202210162 - 22A   //
-//Camila Vitória Silva Lopes - 202210169 - 22A //
-//---------------------------------------------//
+/*
+====================================================
+||| SISTEMA DE CADASTRO EM ARQUIVOS COM ORDENAÇÃO|||
+|||                                              |||
+||| Dhiogo Vinicius Gonçalves - 202210591 - 22A  |||
+||| Nycolas Purificação Assis - 202210162 - 22A  |||
+||| Tiago Gualberto Bento - 202210169 - 22A      |||
+====================================================
+*/
 
 #include <iostream>
+#include <iomanip> //Formatação
 #include <fstream>
 #include <string.h>
 using namespace std; 
@@ -21,104 +24,121 @@ struct dados{
     int idade;
 };
 
-//Importa-Exporta-----------------------------------------------
-void importarcsv(string entrada, string saida);
-string le_celula(ifstream &arquivo); //Elimina ; e lê cada coluna do arquivo csv
-void exportarcsv(string nome_arq); //Exporta para um arquino .csv
+void importaCsv(string entrada, string saida);
+string leituraCelula(ifstream &arquivo); //Elimina ; e lê cada coluna do arquivo csv
+void exportaCsv(string nomeArquivo); //Exporta para um arquino .csv
 //Ordena--------------------------------------------------------
-void ordenar(string nome_arq, bool& shell1, bool& shell2); //Chama as funções de ordenação
-void shell_sort_idade(string nome_arq); //Ordena pelo preço da farmácia 1
-void shell_sort_nome(string nome_arq); //Ordena pelo preço da Farmácia 2
+void ordena(string nomeArquivo, bool& shell1, bool& shell2); //Chama as funções de ordenação
+void shellSortIdade(string nomeArquivo); //Ordena pelo preço da farmácia 1
+void shellSortNome(string nomeArquivo); //Ordena pelo preço da Farmácia 2
 //Imprime-------------------------------------------------------
-void imprimir(string nome_arq); //Imprime na tela os medicamentos desejados
+void imprimirListaClientes(string nomeArquivo); //Imprime na tela os medicamentos desejados
 //Busca---------------------------------------------------------
-void buscar(string nome_arq); //Chama as funções de busca
-void buscar_cep(string nome_arq); 
-void buscar_nome(string nome_arq); 
+void buscarCliente(string nomeArquivo); //Chama as funções de busca
+void buscarCep(string nomeArquivo); 
+void buscarNome(string nomeArquivo); 
 //Exclui--------------------------------------------------------
-void excluir(string nome_arq); //Exlui o medicamento desejado a partir do código de barras
+void excluirCliente(string nomeArquivo); //Exlui o medicamento desejado a partir do código de barras
 //Insere--------------------------------------------------------
-void inserir(string nome_arq, bool& sheel1, bool& sheel2); //Insere novos medicamentos no arquivo
+void cadastrarCliente(string nomeArquivo, bool& sheel1, bool& sheel2); //Insere novos medicamentos no arquivo
 //Auxiliares----------------------------------------------------
 void menu(); //Imprime na tela as opções disponíveis para os usuários
-void clear_terminal(); //Limpa o terminal
-int tamanho_arq(string nome_arq); //Informa o tamanho atual do arquivo binário
-void apaga_escreve(string nome_arq, int tamanho, dados* vet); //Apaga todo o arquivo para reescrevê-lo novamente com os dados desejados
-void escreve_final(string nome_arq, dados procura); //Escreve novos dados no final do arquivo
+void limpaTerminal(); //Limpa o terminal
+int tamanhoArquivo(string nomeArquivo); //Informa o tamanho atual do arquivo binário
+void apagaEscreve(string nomeArquivo, int tamanho, dados* vetor); //Apaga todo o arquivo para reescrevê-lo novamente com os dados desejados
+void escreveFinal(string nomeArquivo, dados procura); //Escreve novos dados no final do arquivo
+void editar(string nomeArquivo);
 
 int main(){
-    char opcao; //Variável que o usuário insere para decidir qual função irá utilizar
-    bool shell1 = 0, shell2 = 0; //Variáveis que verificam se o arquivo já foi ordenado (tanto pelo preço da farmácia 1 e farmácia 2)
-    string arquivo_csv = "Planilha.csv"; 
-    string arquivo_bin = "arqvsaida.bin"; 
-    importarcsv(arquivo_csv, arquivo_bin); 
-    
-    menu();
-    cin >> opcao;
-    clear_terminal();
+    char opcao; 
+    bool shell1 = 0, shell2 = 0;
+    string arquivo_csv = "clientes.csv"; 
+    string arquivo_bin = "clientes.bin"; 
 
-    while(opcao != '7'){ //Permite que o programa seja executado enquanto o usuário não inserir a opção (7) referente a sair do programa
-        switch (opcao){ //Define qual função o programa irá rodar conforme o digitado pelo usuário
+    ifstream arquivo(arquivo_csv);
+    if(!arquivo){
+        cout << "\nO arquivo não foi aberto, verifique se o arquivo (clientes.csv) existe!\n\n";
+        return 0;
+    }
+    arquivo.close();
+
+    importaCsv(arquivo_csv, arquivo_bin); 
+    
+    do{
+        menu();
+        cin >> opcao;
+        limpaTerminal();
+
+        switch (opcao){
         case '1':
-            inserir(arquivo_bin, shell1, shell2);
+            cadastrarCliente(arquivo_bin, shell1, shell2);
             break;
 
         case '2':
-            excluir(arquivo_bin);
+            buscarCliente(arquivo_bin);
             break;
 
         case '3':
-            ordenar(arquivo_bin,shell1,shell2);
+            imprimirListaClientes(arquivo_bin);
             break;
 
         case '4':
-            imprimir(arquivo_bin);
+            excluirCliente(arquivo_bin);
             break;
 
         case '5':
-            buscar(arquivo_bin);
+            ordena(arquivo_bin,shell1,shell2);
             break;
 
         case '6':
-            exportarcsv(arquivo_bin);
+            editar(arquivo_bin);
             break;
-        
+
+        case '7':
+            exportaCsv(arquivo_bin);
+            break;
+
+        case '8':
+            cout << "\n\n||-------------------------------Volte Sempre!-------------------------------||\n\n";
+            break;
+
         default:
             cout << "Opcao invalida, tente novamente!" << endl; //Em caso de valores diferentes do esperado, o programa pede para o usuário tentar novamente
             break;
         }
-        menu();
-        cin >> opcao;
-        clear_terminal();
-    }
-    cout << endl << endl << "---------------------Obrigado por usar nosso programa!---------------------" << endl << endl; //Mensagem de fim
+    } while(opcao != '8');
+
     return 0;
 }
 
-//Auxiliares-----------------------------------------------------
 void menu(){
-    cout << endl << endl;
-    cout << "Arquivo de dados da farmacia" << endl << endl;
-    cout << " ************************************MENU************************************ " << endl << endl;
-    cout << "Escolha uma das opcoes: " << endl << endl;
-    cout << "(1) Inserir - Insere dados referentes a um ou mais medicamentos" << endl;
-    cout << " ---------------------------------------------------------------------------- " << endl;
-    cout << "(2) Excluir - Exclui algum medicamento" << endl;
-    cout << " ---------------------------------------------------------------------------- " << endl;
-    cout << "(3) Ordenar - Ordena os medicamentos existentes no arquivo" << endl;
-    cout << " ---------------------------------------------------------------------------- " << endl;
-    cout << "(4) Imprimir - Exibe as informacoes dos arquivos desejados na tela" << endl;
-    cout << " ---------------------------------------------------------------------------- " << endl;
-    cout << "(5) Buscar - Busca os dados de um medicamento existente a partir de um filtro" << endl;
-    cout << " ---------------------------------------------------------------------------- " << endl;
-    cout << "(6) Exportar - Exporta os dados para um arquivo csv" << endl;
-    cout << " ---------------------------------------------------------------------------- " << endl;
-    cout << "(7) Sair - Encerra o programa" << endl;
-    cout << " ---------------------------------------------------------------------------- " << endl << endl;
-    cout << "Digite a opcao desejada: ";
+    cout << "\n\nBase de clientes para Gestão de trafego de pessoas para e-commerce\n\n";
+    cout << "||================================================================================||\n";
+    cout << "||                                     MENU                                       ||\n";
+    cout << "||================================================================================||\n";
+    cout << "||         ||                ||                                                   ||\n";
+    cout << "||   ( )   ||     Opcoes     ||                     Descricao                     ||\n";
+    cout << "||---------||----------------||---------------------------------------------------||\n";
+    cout << "||   (1)   ||    Cadastrar   || Cadastrar dados de um novo cliente                ||\n";
+    cout << "||---------||----------------||---------------------------------------------------||\n";
+    cout << "||   (2)   ||     Buscar     || Busca os dados de um cliente                      ||\n";
+    cout << "||---------||----------------||---------------------------------------------------||\n";
+    cout << "||   (3)   ||    Imprimir    || Exibe as informacoes dos clientes na tela         ||\n";
+    cout << "||---------||----------------||---------------------------------------------------||\n";
+    cout << "||   (4)   ||     Excluir    || Exclui o cliente desejado                         ||\n";
+    cout << "||---------||----------------||---------------------------------------------------||\n";
+    cout << "||   (5)   ||     Ordenar    || Ordena os cliente no arquivo                      ||\n";
+    cout << "||---------||----------------||---------------------------------------------------||\n";
+    cout << "||   (6)   ||     Editar     || Editar os dados de um cliente cadastrado          ||\n";
+    cout << "||---------||----------------||---------------------------------------------------||\n";
+    cout << "||   (7)   ||    Exportar    || Exporta os dados para um arquivo csv              ||\n";
+    cout << "||---------||----------------||---------------------------------------------------||\n";
+    cout << "||   (8)   ||      Sair      || Encerra o programa                                ||\n";
+    cout << "||---------||----------------||---------------------------------------------------||\n\n";
+    cout << "Informe a opcao desejada: ";
 }
 
-void clear_terminal(){
+void limpaTerminal(){
     #if defined _WIN32
         system("cls");
     #else
@@ -126,23 +146,23 @@ void clear_terminal(){
     #endif
 }
 
-void apaga_escreve(string nome_arq, int tamanho, dados* vet){
-    ofstream arquivo(nome_arq,ios::binary | ios::out | ios::trunc); //Abre o arquivo .bin no modo escrita binário, apagando todos os dados do mesmo (ios::trunc)
+void apagaEscreve(string nomeArquivo, int tamanho, dados* vet){
+    ofstream arquivo(nomeArquivo,ios::binary | ios::out | ios::trunc); //Abre o arquivo .bin no modo escrita binário, apagando todos os dados do mesmo (ios::trunc)
     for(int k = 0; k < tamanho; k++)
         arquivo.write((const char *) &vet[k], sizeof(dados)); //Escreve no arquivo os dados desejados
         
     arquivo.close();
 }
 
-void escreve_final(string nome_arq, dados procura){
-    ofstream arquivo(nome_arq,ios::binary | ios::app | ios::ate); //Abre o arquino para escrita binário e insere dados no final sem apagar dados
+void escreveFinal(string nomeArquivo, dados procura){
+    ofstream arquivo(nomeArquivo,ios::binary | ios::app | ios::ate); //Abre o arquino para escrita binário e insere dados no final sem apagar dados
     arquivo.write((const char *) &procura, sizeof(dados)); //escreve no arquivo os dados do registro "procura"
 
     arquivo.close();
 }
 
-int tamanho_arq(string nome_arq){
-    ifstream arquivo(nome_arq, ios::ate); //Abre o arquivo e posiciona no final para leitura
+int tamanhoArquivo(string nomeArquivo){
+    ifstream arquivo(nomeArquivo, ios::ate); //Abre o arquivo e posiciona no final para leitura
     long int tamanho_arquivo = arquivo.tellg(); //Define o tamanho do arquivo em bytes
     int qtd_dados = int (tamanho_arquivo/sizeof(dados)); //Define a quantidade de dados do arquivo (qtd bytes do arquivo/qtd bytes do registro)
 
@@ -151,28 +171,28 @@ int tamanho_arq(string nome_arq){
 }
 
 //Importa-Exporta------------------------------------------------
-void importarcsv(string entrada, string saida){
+void importaCsv(string entrada, string saida){
     ifstream arquivo(entrada); //Entra no arquivo .csv para leitura
     dados clientes;
     ofstream arqvsaida(saida, ios::binary); //Abre o arquivo para escrita em binário
 
     while (!arquivo.eof()) { // Lê o arquivo até ele chegar ao fim
-        string nome = le_celula(arquivo); //Define a informação do arquivo que será considerada descrição
+        string nome = leituraCelula(arquivo); //Define a informação do arquivo que será considerada descrição
         strcpy(clientes.nome, nome.c_str()); //Copia a string "descricao" para o registro "base10.descricao"
 
-        string sexo = le_celula(arquivo); //Define a informação do arquivo que será considerada código de barras
+        string sexo = leituraCelula(arquivo); //Define a informação do arquivo que será considerada código de barras
         strcpy(clientes.sexo, sexo.c_str());
     
-        string cep = le_celula(arquivo);
+        string cep = leituraCelula(arquivo);
         strcpy(clientes.cep, cep.c_str());
 
-        string dinheiro = le_celula(arquivo); //Define a informação do arquivo que será considerada preço
+        string dinheiro = leituraCelula(arquivo); //Define a informação do arquivo que será considerada preço
         clientes.dinheiro = stof(dinheiro); //Copia a string "preco1" para o float "base10.preco1" (stof)
 
-        string conexao = le_celula(arquivo); //Define a informação do arquivo que será considerada descrição
+        string conexao = leituraCelula(arquivo); //Define a informação do arquivo que será considerada descrição
         strcpy(clientes.conexao, conexao.c_str()); //Copia a string "descricao" para o registro "base10.descricao"
 
-        string idade = le_celula(arquivo); //Define a informação do arquivo que será considerada preço
+        string idade = leituraCelula(arquivo); //Define a informação do arquivo que será considerada preço
         clientes.idade = stoi(idade); //Copia a string "preco2" para o float "base10.preco2" (stof)
         
         arqvsaida.write((const char *)&clientes, sizeof(dados)); // Escreve os dados do registro no arquivo binário
@@ -180,7 +200,7 @@ void importarcsv(string entrada, string saida){
     arqvsaida.close();
 }
 
-string le_celula(ifstream &arquivo)
+string leituraCelula(ifstream &arquivo)
 {
     string celula;
     char c;
@@ -203,15 +223,15 @@ string le_celula(ifstream &arquivo)
     return celula; //retorna a celula lida
 }
 
-void exportarcsv(string nome_arq){
+void exportaCsv(string nomeArquivo){
     string csv; 
     cout << "Digite o nome do arquivo .csv para exportar a base de dados: ";
     cin >> csv; //Usuário informa o nome do arquivo .csv de exportação
 
-    ifstream arq_entrada(nome_arq,ios::binary); //Abre o arquivo para leitura binária
+    ifstream arq_entrada(nomeArquivo,ios::binary); //Abre o arquivo para leitura binária
     ofstream arquivo_csv(csv, ios::trunc | ios::out); //Abre o arquivo, excluindo seus dados, para escrita
 
-    int tamanho = tamanho_arq(nome_arq); //Informa o tamanho do arquivo binário
+    int tamanho = tamanhoArquivo(nomeArquivo); //Informa o tamanho do arquivo binário
     dados aux;
 
     for (int i = 0; i < tamanho; i++){
@@ -230,24 +250,24 @@ void exportarcsv(string nome_arq){
         cout << "(1)menu ou (2)exportar novamente" << endl;
         cin >> escolha;
     }
-    clear_terminal();
+    limpaTerminal();
 
     arq_entrada.close();
     arquivo_csv.close();
 
     if(escolha == '2') //Executa a funcão novamente no caso do usuário digitar escolha = "2"
-        exportarcsv(nome_arq);
+        exportaCsv(nomeArquivo);
 }
 
 //Imprime--------------------------------------------------------
-void imprimir(string nome_arq){
+void imprimirListaClientes(string nomeArquivo){
 
-    int tamanho = tamanho_arq(nome_arq); //Informa o tamanho do arquivo binário
+    int tamanho = tamanhoArquivo(nomeArquivo); //Informa o tamanho do arquivo binário
 
     dados cliente;
     char escolha;
     int inicio, fim, cont = 0, deletados = 0;
-    ifstream arquivo(nome_arq, ios_base::binary | ios_base::in);
+    ifstream arquivo(nomeArquivo, ios_base::binary | ios_base::in);
 
     for (int i = 0; i < tamanho; i++){ //Define a quantidade de dados deletados
         arquivo.read((char *)&cliente,sizeof(dados));
@@ -287,7 +307,7 @@ void imprimir(string nome_arq){
             cout << "Digite novamente ate qual medicamento deseja imprimir: ";
             cin >> fim;
         }
-        clear_terminal();
+        limpaTerminal();
 
         arquivo.seekg((inicio-1)*sizeof(dados)); //Posiciona o arquivo na linha desejada
         while(arquivo.read((char*) &cliente, sizeof(dados)) && fim-inicio >= cont){ //Lê o arquivo até que todos os medicamentos desejados sejam impressos
@@ -308,13 +328,13 @@ void imprimir(string nome_arq){
         cout << "(1)menu ou (2)imprimir outros clientes" << endl;
         cin >> escolha; 
     }
-    clear_terminal();
+    limpaTerminal();
     if(escolha == '2') //Executa a funcão novamente no caso do usuário digitar escolha = "2"
-        imprimir(nome_arq);
+        imprimirListaClientes(nomeArquivo);
 }
 
 //Ordena---------------------------------------------------------
-void ordenar(string nome_arq, bool& shell1, bool& shell2){
+void ordena(string nomeArquivo, bool& shell1, bool& shell2){
     char escolha; 
     cout << "Deseja ordenar os clientes pela idade ou pelo nome?" <<   endl;
     cout << "(1) Idade" << endl;
@@ -328,11 +348,11 @@ void ordenar(string nome_arq, bool& shell1, bool& shell2){
     }
     
     if(escolha == '1'){
-        shell_sort_idade(nome_arq); //Ordena o arquivo pelo preço da farmácia 1
+        shellSortIdade(nomeArquivo); //Ordena o arquivo pelo preço da farmácia 1
         shell1 = 1; //Determina se o arquivo foi ordenado pelo preço 1
     }
     else{
-        shell_sort_nome(nome_arq); //Ordena o arquivo pelo preço da farmácia 2
+        shellSortNome(nomeArquivo); //Ordena o arquivo pelo preço da farmácia 2
         shell2 = 1; //Determina se o arquivo foi ordenado pelo preço 2
     }
     
@@ -346,15 +366,15 @@ void ordenar(string nome_arq, bool& shell1, bool& shell2){
         cout << "(1)menu ou (2)ordenar novamente os clientes" << endl;
         cin >> escolha; 
     }
-    clear_terminal();
+    limpaTerminal();
     if(escolha == '2') //Executa a funcão novamente no caso do usuário digitar escolha = "2"
-        ordenar(nome_arq,shell1,shell2);
+        ordena(nomeArquivo,shell1,shell2);
 }
 
-void shell_sort_idade(string nome_arq){
-    ifstream arquivo(nome_arq,ios::binary | ios::in); //Abre o arquivo para leitura binária
+void shellSortIdade(string nomeArquivo){
+    ifstream arquivo(nomeArquivo,ios::binary | ios::in); //Abre o arquivo para leitura binária
 
-    int tamanho = tamanho_arq(nome_arq), deletados = 0; //Informa o tamanho do arquivo
+    int tamanho = tamanhoArquivo(nomeArquivo), deletados = 0; //Informa o tamanho do arquivo
 
     dados aux;
     
@@ -398,14 +418,14 @@ void shell_sort_idade(string nome_arq){
     }
     arquivo.close();
     
-    apaga_escreve(nome_arq,tamanho,vet); //Escreve no arquivo o vetor já ordenado
+    apagaEscreve(nomeArquivo,tamanho,vet); //Escreve no arquivo o vetor já ordenado
     delete[] vet;
 }
 
-void shell_sort_nome(string nome_arq){
-    ifstream arquivo(nome_arq,ios::binary | ios::in); //Abre o arquivo para leitura binária
+void shellSortNome(string nomeArquivo){
+    ifstream arquivo(nomeArquivo,ios::binary | ios::in); //Abre o arquivo para leitura binária
 
-    int tamanho = tamanho_arq(nome_arq), deletados = 0; //Informa o tamanho do arquivo
+    int tamanho = tamanhoArquivo(nomeArquivo), deletados = 0; //Informa o tamanho do arquivo
 
     dados aux;
     
@@ -448,15 +468,15 @@ void shell_sort_nome(string nome_arq){
     }
     arquivo.close();
 
-    apaga_escreve(nome_arq,tamanho,vet); //Escreve no arquivo o vetor já ordenado
+    apagaEscreve(nomeArquivo,tamanho,vet); //Escreve no arquivo o vetor já ordenado
     delete[] vet;
 }
 
 //Exclui---------------------------------------------------------
-void excluir(string nome_arq){
-    fstream arquivo(nome_arq); //Abre o arquivo para leitura e escrita
+void excluirCliente(string nomeArquivo){
+    fstream arquivo(nomeArquivo); //Abre o arquivo para leitura e escrita
 
-    int tamanho = tamanho_arq(nome_arq), cont = 0, posicao = -1;
+    int tamanho = tamanhoArquivo(nomeArquivo), cont = 0, posicao = -1;
     char escolha;
     dados procura;
 
@@ -490,15 +510,15 @@ void excluir(string nome_arq){
         cout << "(1)menu ou (2)excluir outros clientes" << endl;
         cin >> escolha; 
     }
-    clear_terminal();
+    limpaTerminal();
     arquivo.close();
 
     if(escolha == '2') //Executa a funcão novamente no caso do usuário digitar escolha = "2"
-        excluir(nome_arq);
+        excluirCliente(nomeArquivo);
 }
 
 //Busca----------------------------------------------------------
-void buscar(string nome_arq){
+void buscarCliente(string nomeArquivo){
     char escolha;
     cout << endl << "Digite o campo do cliente que deseja fazer a busca:" << endl;
     cout << "(1) CEP;" << endl;
@@ -512,9 +532,9 @@ void buscar(string nome_arq){
     }
     
     if(escolha == '1') 
-        buscar_cep(nome_arq); //Busca um medicamento pelo código do mesmo
+        buscarCep(nomeArquivo); //Busca um medicamento pelo código do mesmo
     else
-        buscar_nome(nome_arq); //Busca um medicamento pela descrição do mesmo
+        buscarNome(nomeArquivo); //Busca um medicamento pela descrição do mesmo
 
     cout << endl << endl <<"Digite (1) para voltar ao menu ou (2) para buscar outros clientes:";
     cin >> escolha; //Variável que permite o usuário voltar para o menu ou repitir a função executada
@@ -524,14 +544,14 @@ void buscar(string nome_arq){
         cout << "(1)menu ou (2)buscar outros clientes" << endl;
         cin >> escolha;
     }
-    clear_terminal();
+    limpaTerminal();
     if(escolha == '2') //Executa a funcão novamente no caso do usuário digitar escolha = "2"
-        buscar(nome_arq);
+        buscarCliente(nomeArquivo);
 }
 
-void buscar_cep(string nome_arq){
-    ifstream arquivo (nome_arq, ios::in | ios::binary); //Abre o arquivo para leitura binária
-    int qtd_dados = tamanho_arq(nome_arq); //Informa o tamanho do arquivo
+void buscarCep(string nomeArquivo){
+    ifstream arquivo (nomeArquivo, ios::in | ios::binary); //Abre o arquivo para leitura binária
+    int qtd_dados = tamanhoArquivo(nomeArquivo); //Informa o tamanho do arquivo
 
     char cep[10]; 
     cout << "Digite o codigo de barras buscado: "; 
@@ -565,9 +585,9 @@ void buscar_cep(string nome_arq){
     }
 }
 
-void buscar_nome(string nome_arq){
-    ifstream arquivo (nome_arq, ios::in | ios::binary); //Abre o arquivo para leitura binária
-    int qtd_dados = tamanho_arq(nome_arq); //Informa o tamanho do arquivo
+void buscarNome(string nomeArquivo){
+    ifstream arquivo (nomeArquivo, ios::in | ios::binary); //Abre o arquivo para leitura binária
+    int qtd_dados = tamanhoArquivo(nomeArquivo); //Informa o tamanho do arquivo
 
     char nome_buscado[200];
     cout << "Digite o nome buscado: "; 
@@ -603,10 +623,10 @@ void buscar_nome(string nome_arq){
 }
 
 //Inserir-------------------------------------------------------
-void inserir(string nome_arq, bool& sheel1, bool& sheel2){  
-    ifstream arquivo(nome_arq, ios::in | ios::binary); //Abre o arquivo para leitura binária
+void cadastrarCliente(string nomeArquivo, bool& sheel1, bool& sheel2){  
+    ifstream arquivo(nomeArquivo, ios::in | ios::binary); //Abre o arquivo para leitura binária
      
-    int qtd_dados = tamanho_arq(nome_arq); //Informa o tamanho do arquivo
+    int qtd_dados = tamanhoArquivo(nomeArquivo); //Informa o tamanho do arquivo
     
         char nome_inserir[200];
         cout << "Digite o nome que deseja inserir: "; 
@@ -639,13 +659,13 @@ void inserir(string nome_arq, bool& sheel1, bool& sheel2){
             cout << endl << "Informe a idade: ";
             cin >> procura.idade;
 
-            escreve_final(nome_arq,procura); //Escreve no final do arquivo
+            escreveFinal(nomeArquivo,procura); //Escreve no final do arquivo
             cout << endl << "Cliente registrado com sucesso!";
 
             if(sheel1)
-                shell_sort_idade(nome_arq);
+                shellSortIdade(nomeArquivo);
             else if(sheel2)
-                shell_sort_nome(nome_arq);
+                shellSortNome(nomeArquivo);
                 
         }
         else
@@ -661,8 +681,12 @@ void inserir(string nome_arq, bool& sheel1, bool& sheel2){
         cout << "(1)menu ou (2)inserir outro medicamento" << endl;
         cin >> escolha;
     }
-    clear_terminal();
+    limpaTerminal();
     arquivo.close();
     if(escolha == '2') //Executa a funcão novamente no caso do usuário digitar escolha = "2"
-        inserir(nome_arq,sheel1,sheel2);
+        cadastrarCliente(nomeArquivo,sheel1,sheel2);
+}
+
+void editar(string nomeArquivo){
+    cout << "oi";
 }
