@@ -16,14 +16,14 @@
 #include <cstring>
 #include <ctype.h>
 
+using namespace std;
+
 // Biblioteca para uso do sleep no windows ou linux
 #if defined _WIN32 || defined _WIN64
 #include <Windows.h>
 #else
 #include <unistd.h>
 #endif
-
-using namespace std;
 
 // Criando registro para remédios
 struct remedios
@@ -1271,7 +1271,7 @@ int Imprimir_Arq()
 
                 for (int i = inicio; i <= fim; i++)
                 {
-                    if (vetorExport[i-1].status == true)
+                    if (vetorExport[i - 1].status == true)
                     {
                         // excreve no arquino CSV
                         cout << endl;
