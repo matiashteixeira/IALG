@@ -70,7 +70,7 @@ int main(){
 
     ifstream arquivo(arquivoCsv); //Abre para verificação
     if(!arquivo){ //Verifica se o arquivo está disponível
-        cout << "\nO arquivo não foi aberto, verifique se o arquivo (" << arquivoCsv << ") existe!\n\n";
+        cout << "\nO arquivo nao foi aberto, verifique se o arquivo (" << arquivoCsv << ") existe!\n\n";
         return 0;
     }
     arquivo.close(); //Fecha após a verificação
@@ -277,7 +277,7 @@ void imprimirListaClientes(string nomeArquivo){
 
     arquivo.seekg(ios::beg); //Posiciona o ponteiro de leitura no início
     
-    cout << "Deseja imprimir o arquivo todo na tela: (1)Sim (2)Não\n";
+    cout << "Deseja imprimir o arquivo todo na tela: (1)Sim (2)Nao\n";
      
     if(escolhaOpcao("(1)Sim","(2)Nao")){
         limpaTerminal();
@@ -291,8 +291,8 @@ void imprimirListaClientes(string nomeArquivo){
         cout << "O arquivo tem " << tamanho << " clientes, sendo que desses, " << deletados << " foram deletados\n\n"; //Informa a quantidade de clientes no arquivo
         cout << "Deseja imprimir a partir de qual cliente? \n";
     
-        while(!verificaInt(inicio)){
-            cout << "Formato invalido, deseja imprimir a partir de qual cliente: ";
+        while(!verificaInt(inicio) || inicio == 0){
+            cout << "Formato invalido, deseja imprimir a partir de qual cliente (1 a " << tamanho << "): ";
         }
 
         cout << "Deseja imprimir ate qual cliente? \n";
@@ -561,7 +561,7 @@ void cadastrarCliente(string nomeArquivo, bool& sheel1, bool& sheel2){
     dados procura = getCliente(nomeArquivo,posicao);
 
         if(posicao == -1){ //Caso o cliente não esteja cadastrado
-            cout << "Cliente não esta no sistema, digite os dados: \n";
+            cout << "Cliente nao esta no sistema, digite os dados: \n";
             escreveFinal(nomeArquivo,entradaDados(procura)); //Escreve no final do arquivo
             cout << "\nCliente registrado com sucesso!";
 
