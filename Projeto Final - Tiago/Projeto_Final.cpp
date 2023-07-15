@@ -54,12 +54,18 @@ bool repeteOpcao(); //Permite ao usuário a possibilidade de repetir a opção q
 bool escolhaOpcao(string opcao1, string opcao2); //Coleta a opção digitada pelo usuário
 bool verificaFloat(float &num);
 bool verificaInt(int& num);
+bool verificaSexo(string& sexo);
+bool verificaConexao(string& conexao);
+bool verificaCpf(string& cpf);
 dados getCliente(string nomeArquivo, int& posicao);   
 dados entradaDados(dados cliente); 
 
 int main(){
-    string entrada;
+    limpaTerminal();
+    int opcao = 0;
+
     bool shell1 = 0, shell2 = 0; //Variáveis responsáveis por ordenar o cliente cadastrado, caso o arquivo já tenha sido ordenado anteriormente
+
     string arquivoCsv = "clientes.csv"; //Arquivo .csv usado no trabalho
     string arquivoBin = "clientes.bin"; //Arquivo binário para manipulação
 
@@ -75,40 +81,40 @@ int main(){
     do{
         menu(); //Exibe o menu de opções
         
-        getline(cin,entrada);
+        verificaInt(opcao);
     
         limpaTerminal();
 
-        switch (entrada[0]){
-        case '1':
+        switch (opcao){
+        case 1:
             cadastrarCliente(arquivoBin, shell1, shell2);
             break;
 
-        case '2':
+        case 2:
             buscarCliente(arquivoBin);
             break;
 
-        case '3':
+        case 3:
             imprimirListaClientes(arquivoBin);
             break;
 
-        case '4':
+        case 4:
             excluirCliente(arquivoBin);
             break;
 
-        case '5':
+        case 5:
             ordena(arquivoBin,shell1,shell2);
             break;
 
-        case '6':
+        case 6:
             editarCliente(arquivoBin);
             break;
 
-        case '7':
+        case 7:
             exportaCsv(arquivoBin);
             break;
 
-        case '8':
+        case 8:
             cout << "\n\n||-------------------------------Volte Sempre!-------------------------------||\n\n"; //Mensagem de saída do programa
             break;
 
@@ -116,7 +122,7 @@ int main(){
             cout << "Opcao invalida, tente novamente!" << endl; //Em caso de valores diferentes do esperado, o programa pede para o usuário tentar novamente
             break;
         }
-    } while(entrada[0] != '8');
+    } while(opcao != 8);
 
     return 0;
 }
@@ -233,7 +239,7 @@ string leituraCelula(ifstream &arquivo)
 
 void exportaCsv(string nomeArquivo){
     string csv; 
-    cout << "Digite o nome do arquivo .csv para exportar a base de dados: ";
+    cout << "Digite o nome do arquivo para exportar a base de dados: ";
     getline(cin,csv); //Usuário informa o nome do arquivo .csv de exportação
 
     ifstream arq_entrada(nomeArquivo,ios::binary); //Abre o arquivo para leitura binária
@@ -276,18 +282,20 @@ void imprimirListaClientes(string nomeArquivo){
     cout << "Deseja imprimir o arquivo todo na tela: (1)Sim (2)Não\n";
      
     if(escolhaOpcao("(1)Sim","(2)Nao")){
-        cout << "          Nome          " << " Sexo " << "            CPF           " << "   Dinheiro   " << "         Conexao         " << "  Idade  \n";
+        limpaTerminal();
         while(arquivo.read((char*) &cliente, sizeof(dados))){ //Lê o arquivo e armazena no registro "cliente"
             if(!cliente.apagado){ //Se o cliente não possuir o marcador lógico de exclusão, imprime na tela
                 imprimeDados(cliente);
             }   
         }
     }else { //Permite ao usuário imprimir a quantidade de clientes desejada
+    limpaTerminal();
         cout << "O arquivo tem " << tamanho << " clientes, sendo que desses, " << deletados << " foram deletados\n\n"; //Informa a quantidade de clientes no arquivo
         cout << "Deseja imprimir a partir de qual cliente? \n";
     
-        if(!verificaInt(inicio))
-            cout << "Formato invalido, sera impresso desde o primeiro cliente\n";
+        while(!verificaInt(inicio)){
+            cout << "Formato invalido, deseja imprimir a partir de qual cliente: ";
+        }
 
         cout << "Deseja imprimir ate qual cliente? \n";
 
@@ -309,7 +317,6 @@ void imprimirListaClientes(string nomeArquivo){
 
         limpaTerminal();
         arquivo.seekg((inicio-1)*sizeof(dados)); //Posiciona o arquivo na linha desejada
-        cout << "          Nome          " << " Sexo " << "            CPF           " << "   Dinheiro   " << "         Conexao         " << "  Idade  \n";
         
         for (int i = 0; i <= fim-inicio; i++){ //Percorre o arquivo e imprime até o cliente desejado
             arquivo.read((char*) &cliente, sizeof(dados));
@@ -512,7 +519,6 @@ void buscarCpf(string nomeArquivo){
         arquivo.read((char *) &procura, sizeof(dados)); //Lê as informações referentes ao cliente do CPF informado
         
         //Exibe as informações do cliente buscado
-        cout << "          Nome          " << " Sexo " << "            CPF           " << "   Dinheiro   " << "         Conexao         " << "  Idade  \n";
         imprimeDados(procura);
         arquivo.close();
     }
@@ -545,7 +551,6 @@ void buscarNome(string nomeArquivo){
         arquivo.read((char *) &procura, sizeof(dados)); //Lê as informações referentes ao cliente do nome informado
         
         //Exibe as informações do cliente buscado
-        cout << "          Nome          " << " Sexo " << "            CPF           " << "   Dinheiro   " << "         Conexao         " << "  Idade  \n";
         imprimeDados(procura);
         arquivo.close();
     }
@@ -556,6 +561,7 @@ void cadastrarCliente(string nomeArquivo, bool& sheel1, bool& sheel2){
     dados procura = getCliente(nomeArquivo,posicao);
 
         if(posicao == -1){ //Caso o cliente não esteja cadastrado
+            cout << "Cliente não esta no sistema, digite os dados: \n";
             escreveFinal(nomeArquivo,entradaDados(procura)); //Escreve no final do arquivo
             cout << "\nCliente registrado com sucesso!";
 
@@ -574,43 +580,36 @@ void cadastrarCliente(string nomeArquivo, bool& sheel1, bool& sheel2){
 
 dados entradaDados(dados cliente){
     string dado;
-    float num1 = 0;
-    int num2 = 0;
 
     cout << "\nInforme o nome do cliente: ";
     getline(cin,dado);
     strcpy(cliente.nome,dado.c_str());
 
-
-    cout << "Informe o CPF (11 digitos): ";
-    getline(cin,dado);
-    strcpy(cliente.cpf,dado.c_str());
-
-
     cout << "Informe o sexo (M)Masculino e (F)Feminino: ";
-    getline(cin,dado);
+    while(!verificaSexo(dado)){
+        cout << "Valor informado nao atende as possibilidades, digite novamente (M)Masculino (F)Feminino: ";
+    }
     cliente.sexo = dado[0];
 
-
     cout << "Informe o dinheiro: ";
-    if(verificaFloat(num1)){
-        cliente.dinheiro = num1;
-    } else{
-        cout << "\nFormato inserido invalido, dinheiro do cliente igual a zero (0) reais\n\n";
-        cliente.dinheiro = 0;
+    float dinheiro;
+    while(!verificaFloat(dinheiro)){
+        cout << "Valor informado nao corresponde a um valor valido, digite novamente: ";
     } 
+    cliente.dinheiro = dinheiro;
 
-    cout << "Informe a conexao - 3G, 4G, Wifi: ";   
-    getline(cin,dado);
+    cout << "Informe a conexao - 3G, 4G ou Wifi: ";   
+    while(!verificaConexao(dado)){
+        cout << "Valor informado nao atende as possibilidades, digite novamente (3G, 4G ou WIfi): ";
+    }
     strcpy(cliente.conexao,dado.c_str());
 
     cout << "Informe a idade: ";
-    if(verificaInt(num2)){
-        cliente.idade = num2;
-    } else{
-        cout << "\nFormato inserido invalido, idade do cliente igual a zero (0)\n\n";
-        cliente.idade = 0;
+    int idade;
+    while(!verificaInt(idade)){
+        cout << "Valor informado nao corresponde a uma idade valida, digite novamente: ";
     } 
+    cliente.idade = idade;
     
     return cliente;
 }
@@ -623,6 +622,9 @@ bool verificaFloat(float &num){
 
     for (int i = 0; i < numero.size(); i++){
         
+        if(numero[i] == ',')
+            numero.replace(i,1,".");
+
         if (!isdigit(numero[i]) and numero[i] != '.'){
             aux = false;
             i = numero.size();
@@ -652,9 +654,61 @@ bool verificaInt(int& num){
 
     if (aux == true){
         num = stoi(numero);
+    } else{
+        num = 0;
     }
 
     return aux;
+}
+
+bool verificaSexo(string& sexo){
+    string dado;
+    string possibilidades[] = {"F","M"};
+
+    getline(cin,dado);
+
+    for (int i = 0; i <= possibilidades->size(); i++){
+        if(strcmp(dado.c_str(),possibilidades[i].c_str()) == 0){
+            sexo = dado[0];
+            return 1;
+        }
+    }
+    return 0;
+}
+
+bool verificaConexao(string& conexao){
+    string dado;
+    string possibilidades[] = {"3G", "4G","Wifi"};
+
+    getline(cin,dado);
+
+    for (int i = 0; i <= possibilidades->size(); i++){
+        if(strcmp(dado.c_str(),possibilidades[i].c_str()) == 0){
+            strcpy((char*)conexao.c_str(),dado.c_str());
+            return 1;
+        }
+    }
+    return 0;
+}
+
+bool verificaCpf(string& cpf){
+    string dado;
+
+    getline(cin,dado);
+
+    if(strlen(dado.c_str()) != 11){
+        return 0;
+    }
+
+    for (int i = 0; i < dado.size(); i++){
+        if(!isdigit(dado[i])){
+            return 0;
+        }
+    }
+
+    strcpy((char*)cpf.c_str(),dado.c_str());
+    
+    return 1;
 }
 
 dados getCliente(string nomeArquivo, int& posicao){
@@ -662,9 +716,13 @@ dados getCliente(string nomeArquivo, int& posicao){
     int qtd_dados = tamanhoArquivo(nomeArquivo); //Informa o tamanho do arquivo
 
     string cpf; 
-    cout << "Digite o CPF para verificar se existe no sistema (11 digitos): "; 
+    cout << "Digite o CPF para verificar se existe no sistema (11 digitos numerico): "; 
     
-    getline(cin,cpf); //CPF que se deseja busca na base de dados
+    while(!verificaCpf(cpf)){
+        cout << "O CPF informado nao esta de acordo com o padrao esperado (11 digitos numerico). Digite novamente: ";
+    }
+
+    limpaTerminal();
 
     int cont = 0;
     dados procura;
@@ -678,6 +736,10 @@ dados getCliente(string nomeArquivo, int& posicao){
     }
     arquivo.close();
 
+    if(posicao == -1){
+        strcpy(procura.cpf,cpf.c_str());
+    }
+
     return procura;
 }
 
@@ -688,6 +750,7 @@ void editarCliente(string nomeArquivo){
     if(posicao == -1) //Caso o cpf não exista no arquivo
         cout << "\nCPF nao encontrado!";
     else{ 
+        cout << endl << "Cliente encontrado, digite seus novos dados: ";
         fstream arquivo(nomeArquivo); //Abre o arquivo para leitura e escrita
         arquivo.seekp((posicao+1)*sizeof(dados)); //Posiciona o ponteiro de escrita
         arquivo.seekp(-static_cast<int>(sizeof(dados)), ios::cur); //Posiciona o ponteiro de escrita dentro do registro com o cpf buscado
@@ -708,6 +771,7 @@ bool repeteOpcao(){
     getline(cin,escolha); //Variável que permite o usuário voltar para o menu ou repitir a função executada
 
     while(!strcmp(escolha.c_str(),"1") == 0 && !strcmp(escolha.c_str(),"2") == 0){ //Impede que outros valores sejam inseridos
+        limpaTerminal();
         cout << "\nOpcao nao disponivel, digite novamente: \n";
         cout << "(1)menu ou (2)repetir opcao\n";
         getline(cin,escolha);
@@ -737,15 +801,10 @@ bool escolhaOpcao(string opcao1, string opcao2){
 }
 
 void imprimeDados(dados cliente){
-    cout.width(24);
-    cout << left << cliente.nome <<"  ";
-    cout.width(9);
-    cout << left << cliente.sexo << "  ";
-    cout.width(22);
-    cout << cliente.cpf << "  ";
-    cout.width(17);
-    cout << left << cliente.dinheiro << "  "; 
-    cout.width(18);
-    cout << left << cliente.conexao << " ";
-    cout << left << cliente.idade << endl; //Imprime na tela todos os medicamentos do arquivo binário
+    cout << cliente.nome <<" - ";
+    cout << cliente.sexo << " - ";
+    cout << cliente.cpf << " - ";
+    cout << cliente.dinheiro << " - "; 
+    cout << cliente.conexao << " - ";
+    cout << cliente.idade << endl; //Imprime na tela todos os medicamentos do arquivo binário
 }
