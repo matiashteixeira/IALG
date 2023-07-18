@@ -2,9 +2,9 @@
 ====================================================
 ||| SISTEMA DE CADASTRO EM ARQUIVOS COM ORDENAÇÃO|||
 |||                                              |||
-||| Dhiogo Vinicius Gonçalves - 202210591 - 22A  |||
-||| Nycolas Purificação Assis - 202210162 - 22A  |||
-||| Tiago Gualberto Bento - 202210169 - 22A      |||
+||| Dhiogo Vinicius Gonçalves - 202220328        |||
+||| Nycolas Purificação Assis - 202220344        |||
+||| Tiago Gualberto Bento - 202220338            |||
 ====================================================
 */
 
