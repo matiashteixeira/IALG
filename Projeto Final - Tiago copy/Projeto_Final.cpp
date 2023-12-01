@@ -36,7 +36,7 @@ void shellSortIdade(string nomeArquivo); //Ordena pela Idade
 void shellSortNome(string nomeArquivo); //Ordena pelo Nome
 void imprimirListaClientes(string nomeArquivo); //Imprime na tela os clientes desejados
 void buscarCliente(string nomeArquivo); //Responsável por permitir que o usuário escolha entre as duas possibilidades de busca
-void buscarCpf(string nomeArquivo); //Busca pelo campo CPF
+int buscarCpf(string nomeArquivo); //Busca pelo campo CPF
 void buscarNome(string nomeArquivo); //Busca pelo campo Nome
 void excluirCliente(string nomeArquivo); //Exlui o cliente desejado a partir do cpf
 void cadastrarCliente(string nomeArquivo, bool& sheel1, bool& sheel2); //Insere novos clientes no arquivo
@@ -61,6 +61,7 @@ dados getCliente(fstream& aquivo); //Entra com o cpf de um novo cliente e verifi
 dados getCliente(fstream& arquivo, string& linha);
 dados entradaDados(dados cliente);  //entra com os dados do cliente, exceto o CPF
 void percorreArquivo(fstream& arquivo, int fim, int inicio);
+void escrevaArquivo(ofstream& arquivo, dados cliente);
 
 int main() {
     limpaTerminal();
@@ -89,7 +90,7 @@ int main() {
 
         switch (opcao) {
         case 1:
-            // cadastrarCliente(arquivoBin, shell1, shell2);
+            cadastrarCliente(arquivoBin, shell1, shell2);
             break;
 
         case 2:
@@ -113,7 +114,7 @@ int main() {
             break;
 
         case 7:
-            // exportaCsv(arquivoBin);
+            exportaCsv(arquivoBin);
             break;
 
         case 8:
@@ -167,14 +168,38 @@ void limpaTerminal() {
 void apagaEscreve(string nomeArquivo, int tamanho, dados* vet) {
     ofstream arquivo(nomeArquivo, ios::binary | ios::out | ios::trunc); //Abre o arquivo .bin no modo escrita binário, apagando todos os dados do mesmo (ios::trunc)
     for (int k = 0; k < tamanho; k++)
-        arquivo.write((const char*)&vet[k], sizeof(dados)); //Escreve no arquivo os dados do ponteiro recebido por parâmetro 
+        escrevaArquivo(arquivo, vet[k]);
     arquivo.close();
 }
 
-void escreveFinal(string nomeArquivo, dados procura) {
-    ofstream arquivo(nomeArquivo, ios::binary | ios::app | ios::ate); //Abre o arquino para escrita binário e insere dados no final sem apagar dados
-    arquivo.write((const char*)&procura, sizeof(dados)); //escreve no arquivo os dados do registro "procura"
+void escrevaArquivo(ofstream& arquivo, dados cliente) {
+    arquivo.write(cliente.nome.c_str(), cliente.nome.size()); // Escreve os dados do registro no arquivo binário
+    arquivo.write(",", 1);
 
+    arquivo.write(&cliente.sexo, sizeof(cliente.sexo));
+    arquivo.write(",", 1);
+
+    arquivo.write(cliente.cpf, sizeof(cliente.cpf));
+    arquivo.write(",", 1);
+
+    arquivo.write(to_string(round(cliente.dinheiro * 100.0) / 100.0).c_str(), to_string(cliente.dinheiro).size());
+    arquivo.write(",", 1);
+
+    string conex = cliente.conexao;
+    arquivo.write(conex.c_str(), conex.size());
+    arquivo.write(",", 1);
+
+    arquivo.write(to_string(cliente.idade).c_str(), sizeof(int));
+    arquivo.write(",", 1);
+
+    string apagado = to_string(cliente.apagado);
+    arquivo.write(apagado.c_str(), apagado.size());
+    arquivo.write("\n", 1);
+}
+
+void escreveFinal(string nomeArquivo, dados cliente) {
+    ofstream arquivo(nomeArquivo, ios::binary | ios::app | ios::ate); //Abre o arquino para escrita binário e insere dados no final sem apagar dados
+    escrevaArquivo(arquivo, cliente);
     arquivo.close();
 }
 
@@ -198,7 +223,6 @@ int tamanhoArquivo(string nomeArquivo, int& deletados) {
 
     while (getline(arquivo, verificaDeletados))
     {
-
         tamanho++;
         istringstream ss(verificaDeletados);
 
@@ -226,10 +250,10 @@ int tamanhoArquivo(string nomeArquivo, int& deletados) {
 
         string apagado;
         getline(ss, apagado, ',');
-
-        if (cliente.apagado) {
+        if (apagado != "0") {
             deletados++;
         }
+
     }
     return tamanho;
 }
@@ -309,59 +333,38 @@ void importaCsv(string entrada, string saida) {
         getline(ss, idade, ',');
         clientes.idade = stoi(idade);
 
-        arqvsaida.write(clientes.nome.c_str(), clientes.nome.size()); // Escreve os dados do registro no arquivo binário
-        arqvsaida.write(",", 1);
-
-        arqvsaida.write(&clientes.sexo, sizeof(clientes.sexo));
-        arqvsaida.write(",", 1);
-
-        arqvsaida.write(clientes.cpf, sizeof(clientes.cpf));
-        arqvsaida.write(",", 1);
-
-        arqvsaida.write(to_string(round(clientes.dinheiro * 100.0) / 100.0).c_str(), to_string(clientes.dinheiro).size());
-        arqvsaida.write(",", 1);
-
-        string conex = clientes.conexao;
-        arqvsaida.write(conex.c_str(), conex.size());
-        arqvsaida.write(",", 1);
-
-        arqvsaida.write(to_string(clientes.idade).c_str(), sizeof(int));
-        arqvsaida.write(",", 1);
-
-        string apagado = to_string(clientes.apagado);
-        arqvsaida.write(apagado.c_str(), apagado.size());
-        arqvsaida.write("\n", 1);
+        escrevaArquivo(arqvsaida, clientes);
     }
 
     arqvsaida.close();
 }
 
+void exportaCsv(string nomeArquivo) {
+    string csv;
+    cout << "Digite o nome do arquivo para exportar a base de dados: ";
+    getline(cin, csv); //Usuário informa o nome do arquivo .csv de exportação
 
-// void exportaCsv(string nomeArquivo) {
-//     string csv;
-//     cout << "Digite o nome do arquivo para exportar a base de dados: ";
-//     getline(cin, csv); //Usuário informa o nome do arquivo .csv de exportação
+    fstream arq_entrada(nomeArquivo, ios::binary | ios::in); //Abre o arquivo para leitura binária
+    ofstream arquivo_csv(csv, ios::trunc | ios::out); //Abre o arquivo, excluindo seus dados, para escrita
 
-//     fstream arq_entrada(nomeArquivo, ios::binary, ios::in); //Abre o arquivo para leitura binária
-//     ofstream arquivo_csv(csv, ios::trunc | ios::out); //Abre o arquivo, excluindo seus dados, para escrita
+    int tamanho = tamanhoArquivo(nomeArquivo); //Informa o tamanho do arquivo binário
+    dados aux;
 
-//     int tamanho = tamanhoArquivo(nomeArquivo); //Informa o tamanho do arquivo binário
-//     dados aux;
+    for (int i = 0; i < tamanho; i++) {
 
-//     for (int i = 0; i < tamanho; i++) {
-//         arq_entrada.read((char*)&aux, sizeof(dados)); //Lê o arquivo binário e copia os dados para o registro "aux"
-//         arquivo_csv << aux.nome << "," << aux.sexo << "," << aux.cpf << ","
-//             << aux.dinheiro << "," << aux.conexao << "," << aux.idade << "\n"; //Escreve no arquivo csv os dados, sendo que o (,) = mudança de colunas e o (\n) = quebras de linha
-//     }
+        aux = getCliente(arq_entrada);
+        arquivo_csv << aux.nome << "," << aux.sexo << "," << aux.cpf << ","
+            << aux.dinheiro << "," << aux.conexao << "," << aux.idade << "\n"; //Escreve no arquivo csv os dados, sendo que o (,) = mudança de colunas e o (\n) = quebras de linha
+    }
 
-//     cout << "\nBase de dados exportada com sucesso!";
+    cout << "\nBase de dados exportada com sucesso!";
 
-//     arq_entrada.close();
-//     arquivo_csv.close();
+    arq_entrada.close();
+    arquivo_csv.close();
 
-//     if (repeteOpcao())
-//         exportaCsv(nomeArquivo);
-// }
+    if (repeteOpcao())
+        exportaCsv(nomeArquivo);
+}
 
 void imprimirListaClientes(string nomeArquivo) {
     int inicio, fim, deletados = 0, tamanho = 0;
@@ -381,7 +384,7 @@ void imprimirListaClientes(string nomeArquivo) {
     }
     else { //Permite ao usuário imprimir a quantidade de clientes desejada
         limpaTerminal();
-        cout << "O arquivo tem " << tamanho << " clientes, sendo que desses, " << deletados << " foram deletados\n\n"; //Informa a quantidade de clientes no arquivo
+        cout << "O arquivo tem " << tamanho << " clientes, e " << deletados << " cliente(s) deletado(s)\n\n"; //Informa a quantidade de clientes no arquivo
         cout << "Deseja imprimir a partir de qual cliente? \n";
 
         while (!verificaInt(inicio) || inicio == 0) {
@@ -600,7 +603,7 @@ void buscarCliente(string nomeArquivo) {
     }
 }
 
-void buscarCpf(string nomeArquivo) {
+int buscarCpf(string nomeArquivo) {
     fstream arquivo(nomeArquivo, ios::in | ios::binary); //Abre o arquivo para leitura binária
     int tamanho = tamanhoArquivo(nomeArquivo); //Informa o tamanho do arquivo
 
@@ -632,6 +635,8 @@ void buscarCpf(string nomeArquivo) {
     else {
         imprimeDados(procura);
     }
+
+    return posicao;
 }
 
 void buscarNome(string nomeArquivo) {
@@ -664,63 +669,86 @@ void buscarNome(string nomeArquivo) {
     }
 }
 
-// void cadastrarCliente(string nomeArquivo, bool& sheel1, bool& sheel2) {
-//     int posicao = -1;
-//     dados procura = getCliente(nomeArquivo, posicao);
+void cadastrarCliente(string nomeArquivo, bool& sheel1, bool& sheel2) {
+    fstream arquivo(nomeArquivo, ios::in | ios::binary); //Abre o arquivo para leitura binária
+    int tamanho = tamanhoArquivo(nomeArquivo); //Informa o tamanho do arquivo
 
-//     if (posicao == -1) { //Caso o cliente não esteja cadastrado
-//         cout << "Cliente nao esta no sistema, digite os dados: \n";
-//         escreveFinal(nomeArquivo, entradaDados(procura)); //Escreve no final do arquivo
-//         cout << "\nCliente registrado com sucesso!";
+    string cpfProcurado;
+    cout << "Digite o CPF para verificar se existe no sistema (11 digitos numerico): ";
 
-//         if (sheel1) //Verifica se o arquivo já havia sido ordenado anteriormente
-//             shellSortIdade(nomeArquivo);
-//         else if (sheel2)
-//             shellSortNome(nomeArquivo);
-//     }
-//     else
-//         cout << "\ncliente ja esta no sistema, tente novamente!\n\n";
+    while (!verificaCpf(cpfProcurado)) {
+        cout << "O CPF informado nao esta de acordo com o padrao esperado (11 digitos numerico). Digite novamente: ";
+    }
 
-//     if (repeteOpcao()) {
-//         cadastrarCliente(nomeArquivo, sheel1, sheel2);
-//     }
-// }
+    limpaTerminal();
 
-// dados entradaDados(dados cliente) {
-//     string dado;
+    int cont = 0, posicao = -1;;
+    dados procura;
 
-//     cout << "\nInforme o nome do cliente: ";
-//     getline(cin, dado);
-//     strcpy(cliente.nome, dado.c_str());
+    while ((cont < tamanho) and (posicao == -1)) { //Lê todo o arquivo ou para quando o cpf buscado for encontrado
+        procura = getCliente(arquivo);
 
-//     cout << "Informe o sexo (M)Masculino e (F)Feminino: ";
-//     while (!verificaSexo(dado)) {
-//         cout << "Valor informado nao atende as possibilidades, digite novamente (M)Masculino (F)Feminino: ";
-//     }
-//     cliente.sexo = dado[0];
+        if ((strcmp(cpfProcurado.c_str(), procura.cpf) == 0) && (!procura.apagado)) { //Verifica se os códigos são iguais e se o arquivo não está com o marcador de apagado
+            posicao = cont; //Define a posição no arquivo do código de barras procurado
+        }
+        cont++;
+    }
+    arquivo.close();
 
-//     cout << "Informe o dinheiro: ";
-//     float dinheiro;
-//     while (!verificaFloat(dinheiro)) {
-//         cout << "Valor informado nao corresponde a um valor valido, digite novamente: ";
-//     }
-//     cliente.dinheiro = dinheiro;
+    if (posicao == -1) { //Caso o cliente não esteja cadastrado
+        strcpy(procura.cpf, cpfProcurado.c_str());
+        cout << "Cliente nao esta no sistema, digite os dados: \n";
+        escreveFinal(nomeArquivo, entradaDados(procura)); //Escreve no final do arquivo
+        cout << "\nCliente registrado com sucesso!";
 
-//     cout << "Informe a conexao - 3G, 4G ou Wifi: ";
-//     while (!verificaConexao(dado)) {
-//         cout << "Valor informado nao atende as possibilidades, digite novamente (3G, 4G ou WIfi): ";
-//     }
-//     strcpy(cliente.conexao, dado.c_str());
+        // if (sheel1) //Verifica se o arquivo já havia sido ordenado anteriormente
+        //     shellSortIdade(nomeArquivo);
+        // else if (sheel2)
+        //     shellSortNome(nomeArquivo);
+    }
+    else
+        cout << "\ncliente ja esta no sistema, tente novamente!\n\n";
 
-//     cout << "Informe a idade: ";
-//     int idade;
-//     while (!verificaInt(idade)) {
-//         cout << "Valor informado nao corresponde a uma idade valida, digite novamente: ";
-//     }
-//     cliente.idade = idade;
+    if (repeteOpcao()) {
+        cadastrarCliente(nomeArquivo, sheel1, sheel2);
+    }
+}
 
-//     return cliente;
-// }
+dados entradaDados(dados cliente) {
+    string dado;
+
+    cout << "\nInforme o nome do cliente: ";
+    getline(cin, dado);
+    cliente.nome = dado;
+
+    cout << "Informe o sexo (M)Masculino e (F)Feminino: ";
+    while (!verificaSexo(dado)) {
+        cout << "Valor informado nao atende as possibilidades, digite novamente (M)Masculino (F)Feminino: ";
+    }
+    cliente.sexo = dado[0];
+
+    cout << "Informe o dinheiro: ";
+    float dinheiro;
+    while (!verificaFloat(dinheiro)) {
+        cout << "Valor informado nao corresponde a um valor valido, digite novamente: ";
+    }
+    cliente.dinheiro = dinheiro;
+
+    cout << "Informe a conexao - 3G, 4G ou Wifi: ";
+    while (!verificaConexao(dado)) {
+        cout << "Valor informado nao atende as possibilidades, digite novamente (3G, 4G ou WIfi): ";
+    }
+    strcpy(cliente.conexao, dado.c_str());
+
+    cout << "Informe a idade: ";
+    int idade;
+    while (!verificaInt(idade)) {
+        cout << "Valor informado nao corresponde a uma idade valida, digite novamente: ";
+    }
+    cliente.idade = idade;
+
+    return cliente;
+}
 
 bool verificaFloat(float& num) {
     string numero;
