@@ -36,7 +36,7 @@ void shellSortIdade(string nomeArquivo); //Ordena pela Idade
 void shellSortNome(string nomeArquivo); //Ordena pelo Nome
 void imprimirListaClientes(string nomeArquivo); //Imprime na tela os clientes desejados
 void buscarCliente(string nomeArquivo); //Responsável por permitir que o usuário escolha entre as duas possibilidades de busca
-int buscarCpf(string nomeArquivo); //Busca pelo campo CPF
+void buscarCpf(string nomeArquivo); //Busca pelo campo CPF
 void buscarNome(string nomeArquivo); //Busca pelo campo Nome
 void excluirCliente(string nomeArquivo); //Exlui o cliente desejado a partir do cpf
 void cadastrarCliente(string nomeArquivo, bool& sheel1, bool& sheel2); //Insere novos clientes no arquivo
@@ -62,6 +62,7 @@ dados getCliente(fstream& arquivo, string& linha);
 dados entradaDados(dados cliente);  //entra com os dados do cliente, exceto o CPF
 void percorreArquivo(fstream& arquivo, int fim, int inicio);
 void escrevaArquivo(ofstream& arquivo, dados cliente);
+int getCpf(string nomeArquivo, dados& procura);
 
 int main() {
     limpaTerminal();
@@ -106,11 +107,11 @@ int main() {
             break;
 
         case 5:
-            // ordena(arquivoBin, shell1, shell2);
+            ordena(arquivoBin, shell1, shell2);
             break;
 
         case 6:
-            // editarCliente(arquivoBin);
+            editarCliente(arquivoBin);
             break;
 
         case 7:
@@ -351,7 +352,6 @@ void exportaCsv(string nomeArquivo) {
     dados aux;
 
     for (int i = 0; i < tamanho; i++) {
-
         aux = getCliente(arq_entrada);
         arquivo_csv << aux.nome << "," << aux.sexo << "," << aux.cpf << ","
             << aux.dinheiro << "," << aux.conexao << "," << aux.idade << "\n"; //Escreve no arquivo csv os dados, sendo que o (,) = mudança de colunas e o (\n) = quebras de linha
@@ -423,128 +423,112 @@ void imprimirListaClientes(string nomeArquivo) {
     }
 }
 
-// void ordena(string nomeArquivo, bool& shell1, bool& shell2) {
+void ordena(string nomeArquivo, bool& shell1, bool& shell2) {
 
-//     cout << "Deseja ordenar os clientes pela idade ou pelo nome?\n";
-//     cout << "(1) Idade\n";
-//     cout << "(2) Nome\n";
+    cout << "Deseja ordenar os clientes pela idade ou pelo nome?\n";
+    cout << "(1) Idade\n";
+    cout << "(2) Nome\n";
 
-//     if (escolhaOpcao("(1)Idade", "(2)Nome")) {
-//         shellSortIdade(nomeArquivo); //Ordena o arquivo pela Idade dos clientes
-//         shell1 = 1; //Determina se o arquivo foi ordenado pela idade
-//     }
-//     else {
-//         shellSortNome(nomeArquivo); //Ordena o arquivo pelo Nome dos clientes
-//         shell2 = 1; //Determina se o arquivo foi ordenado pelo nome
-//     }
+    if (escolhaOpcao("(1)Idade", "(2)Nome")) {
+        shellSortIdade(nomeArquivo); //Ordena o arquivo pela Idade dos clientes
+        shell1 = 1; //Determina se o arquivo foi ordenado pela idade
+    }
+    else {
+        shellSortNome(nomeArquivo); //Ordena o arquivo pelo Nome dos clientes
+        shell2 = 1; //Determina se o arquivo foi ordenado pelo nome
+    }
 
-//     cout << "\nClientes ordenados com sucesso!";
+    cout << "\nClientes ordenados com sucesso!";
+    if (repeteOpcao()) {
+        ordena(nomeArquivo, shell1, shell2);
+    }
+}
 
-//     if (repeteOpcao()) {
-//         ordena(nomeArquivo, shell1, shell2);
-//     }
-// }
+void shellSortIdade(string nomeArquivo) {
+    fstream arquivo(nomeArquivo, ios::binary | ios::in); //Abre o arquivo para leitura binária
 
-// void shellSortIdade(string nomeArquivo) {
-//     fstream arquivo(nomeArquivo, ios::binary | ios::in); //Abre o arquivo para leitura binária
+    int deletados = 0, tamanho = tamanhoArquivo(nomeArquivo, deletados); //Informa o tamanho do arquivo
+    dados aux;
 
-//     int tamanho = tamanhoArquivo(nomeArquivo), deletados = 0; //Informa o tamanho do arquivo
+    tamanho -= deletados;
+    dados* vet;
+    vet = new dados[tamanho];
 
-//     dados aux;
+    for (int i = 0; i < tamanho; i++) {
+        aux = getCliente(arquivo);
+        if (!aux.apagado)
+            vet[i] = aux;
+    }
 
-//     for (int i = 0; i < tamanho; i++) { //Define a quantidade de dados deletados
-//         arquivo.read((char*)&aux, sizeof(dados));
-//         if (aux.apagado)
-//             deletados++;
-//     }
+    int gaps[7] = {1, 4, 13, 40, 121, 364, 1093}; //Sequência de Knuth
+    int pos_gap = 6; //Posicão do último elemento da sequência de Knuth
+    while (gaps[pos_gap] > tamanho) {
+        pos_gap--; //Define o primeiro gap
+    }
+    dados valor;
+    int j;
+    while (pos_gap >= 0) {
+        int gap = gaps[pos_gap]; //Define o tamanho dos gaps
 
-//     arquivo.seekg(ios::beg);
-//     tamanho -= deletados;
-//     dados* vet;
-//     vet = new dados[tamanho];
+        for (int k = gap; k < tamanho; k++) { //Insertion Sort tradicional porém com gaps entre as comparações
+            valor = vet[k]; //Armazena o registro analisado em uma variável aux
+            j = k;
+            while ((j >= gap) and (valor.idade < vet[j - gap].idade)) { //Compara o campo da idade
+                vet[j] = vet[j - gap]; //Posiciona o elemento na sua posição correta em comparação com o outro registro analisado
+                j = j - gap;
+            }
+            vet[j] = valor;
+        }
+        pos_gap--; //Muda a posição do elemento de Knuth que será utilizado
+    }
+    arquivo.close();
 
-//     for (int i = 0; i < tamanho; i++) {
-//         arquivo.read((char*)&aux, sizeof(dados)); //Armazena todos os dados do arquivo em um registro
-//         if (!aux.apagado)
-//             vet[i] = aux;
-//     }
+    apagaEscreve(nomeArquivo, tamanho, vet); //Escreve no arquivo o vetor já ordenado
+    delete[] vet;
+}
 
-//     int gaps[7] = {1, 4, 13, 40, 121, 364, 1093}; //Sequência de Knuth
-//     int pos_gap = 6; //Posicão do último elemento da sequência de Knuth
-//     while (gaps[pos_gap] > tamanho) {
-//         pos_gap--; //Define o primeiro gap
-//     }
-//     dados valor;
-//     int j;
-//     while (pos_gap >= 0) {
-//         int gap = gaps[pos_gap]; //Define o tamanho dos gaps
+void shellSortNome(string nomeArquivo) {
+    fstream arquivo(nomeArquivo, ios::binary | ios::in); //Abre o arquivo para leitura binária
 
-//         for (int k = gap; k < tamanho; k++) { //Insertion Sort tradicional porém com gaps entre as comparações
-//             valor = vet[k]; //Armazena o registro analisado em uma variável aux
-//             j = k;
-//             while ((j >= gap) and (valor.idade < vet[j - gap].idade)) { //Compara o campo da idade
-//                 vet[j] = vet[j - gap]; //Posiciona o elemento na sua posição correta em comparação com o outro registro analisado
-//                 j = j - gap;
-//             }
-//             vet[j] = valor;
-//         }
-//         pos_gap--; //Muda a posição do elemento de Knuth que será utilizado
-//     }
-//     arquivo.close();
+    int deletados = 0, tamanho = tamanhoArquivo(nomeArquivo, deletados); //Informa o tamanho do arquivo
+    dados aux;
 
-//     apagaEscreve(nomeArquivo, tamanho, vet); //Escreve no arquivo o vetor já ordenado
-//     delete[] vet;
-// }
+    tamanho -= deletados;
+    dados* vet;
+    vet = new dados[tamanho];
 
-// void shellSortNome(string nomeArquivo) {
-//     fstream arquivo(nomeArquivo, ios::binary | ios::in); //Abre o arquivo para leitura binária
+    for (int i = 0; i < tamanho; i++) {
+        aux = getCliente(arquivo);
+        if (!aux.apagado)
+            vet[i] = aux;
+    }
 
-//     int tamanho = tamanhoArquivo(nomeArquivo), deletados = 0; //Informa o tamanho do arquivo
+    int gaps[7] = {1, 4, 13, 40, 121, 364, 1093}; //Sequência de Knuth
+    int pos_gap = 6; //Posicão do último elemento da sequência de Knuth
+    while (gaps[pos_gap] > tamanho) {
+        pos_gap--; //Define o primeiro gap
+    }
+    dados valor;
+    int j;
+    while (pos_gap >= 0) {
+        int gap = gaps[pos_gap]; //Define o tamanho dos gaps
 
-//     dados aux;
+        for (int k = gap; k < tamanho; k++) { //Insertion Sort tradicional porém com gaps entre as comparações
+            valor = vet[k]; //Armazena o registro analisado em uma variável aux
+            j = k;
+            while ((j >= gap) and (strcmp(valor.nome.c_str(), vet[j - gap].nome.c_str()) <= 0)) { //Compara o campo do nome
+                vet[j] = vet[j - gap]; //Posiciona o elemento na sua posição correta em comparação com o outro registro analisado
+                j = j - gap;
+            }
+            vet[j] = valor;
+        }
+        pos_gap--; //Muda a posição do elemento de Knuth que será utilizado
+    }
+    arquivo.close();
 
-//     for (int i = 0; i < tamanho; i++) { //Define a quantidade de dados deletados
-//         arquivo.read((char*)&aux, sizeof(dados));
-//         if (aux.apagado)
-//             deletados++;
-//     }
-
-//     arquivo.seekg(ios::beg);
-//     tamanho -= deletados;
-//     dados* vet;
-//     vet = new dados[tamanho];
-
-//     for (int i = 0; i < tamanho; i++) {
-//         arquivo.read((char*)&aux, sizeof(dados)); //Armazena todos os dados do arquivo em um vetor
-//         if (!aux.apagado)
-//             vet[i] = aux;
-//     }
-//     int gaps[7] = {1, 4, 13, 40, 121, 364, 1093}; //Sequência de Knuth
-//     int pos_gap = 6; //Posicão do último elemento da sequência de Knuth
-//     while (gaps[pos_gap] > tamanho) {
-//         pos_gap--; //Define o primeiro gap
-//     }
-//     dados valor;
-//     int j;
-//     while (pos_gap >= 0) {
-//         int gap = gaps[pos_gap]; //Define o tamanho dos gaps
-
-//         for (int k = gap; k < tamanho; k++) { //Insertion Sort tradicional porém com gaps entre as comparações
-//             valor = vet[k]; //Armazena o registro analisado em uma variável aux
-//             j = k;
-//             while ((j >= gap) and (strcmp(valor.nome, vet[j - gap].nome) <= 0)) { //Compara o campo do nome
-//                 vet[j] = vet[j - gap]; //Posiciona o elemento na sua posição correta em comparação com o outro registro analisado
-//                 j = j - gap;
-//             }
-//             vet[j] = valor;
-//         }
-//         pos_gap--; //Muda a posição do elemento de Knuth que será utilizado
-//     }
-//     arquivo.close();
-
-//     apagaEscreve(nomeArquivo, tamanho, vet); //Escreve no arquivo o vetor já ordenado
-//     delete[] vet;
-// }
+    apagaEscreve(nomeArquivo, tamanho, vet); //Escreve no arquivo o vetor já ordenado
+    delete[] vet;
+}
 
 void excluirCliente(string nomeArquivo) {
     fstream arquivo(nomeArquivo); //Abre o arquivo para leitura e escrita
@@ -603,7 +587,7 @@ void buscarCliente(string nomeArquivo) {
     }
 }
 
-int buscarCpf(string nomeArquivo) {
+void buscarCpf(string nomeArquivo) {
     fstream arquivo(nomeArquivo, ios::in | ios::binary); //Abre o arquivo para leitura binária
     int tamanho = tamanhoArquivo(nomeArquivo); //Informa o tamanho do arquivo
 
@@ -635,8 +619,6 @@ int buscarCpf(string nomeArquivo) {
     else {
         imprimeDados(procura);
     }
-
-    return posicao;
 }
 
 void buscarNome(string nomeArquivo) {
@@ -701,10 +683,10 @@ void cadastrarCliente(string nomeArquivo, bool& sheel1, bool& sheel2) {
         escreveFinal(nomeArquivo, entradaDados(procura)); //Escreve no final do arquivo
         cout << "\nCliente registrado com sucesso!";
 
-        // if (sheel1) //Verifica se o arquivo já havia sido ordenado anteriormente
-        //     shellSortIdade(nomeArquivo);
-        // else if (sheel2)
-        //     shellSortNome(nomeArquivo);
+        if (sheel1) //Verifica se o arquivo já havia sido ordenado anteriormente
+            shellSortIdade(nomeArquivo);
+        else if (sheel2)
+            shellSortNome(nomeArquivo);
     }
     else
         cout << "\ncliente ja esta no sistema, tente novamente!\n\n";
@@ -928,27 +910,82 @@ dados getCliente(fstream& arquivo, string& linha) {
     return cliente;
 }
 
-// void editarCliente(string nomeArquivo) {
-//     int posicao = -1;
-//     dados procura = getCliente(nomeArquivo, posicao);
+void editarCliente(string nomeArquivo) {
+    dados procura;
+    int posicao = getCpf(nomeArquivo, procura);
+    int deletados = 0;
+    int tamanho = tamanhoArquivo(nomeArquivo, deletados);
+    string armazenados[tamanho + deletados];
 
-//     if (posicao == -1) //Caso o cpf não exista no arquivo
-//         cout << "\nCPF nao encontrado!";
-//     else {
-//         cout << endl << "Cliente encontrado, digite seus novos dados: ";
-//         fstream arquivo(nomeArquivo); //Abre o arquivo para leitura e escrita
-//         arquivo.seekp((posicao + 1) * sizeof(dados)); //Posiciona o ponteiro de escrita
-//         arquivo.seekp(-static_cast<int>(sizeof(dados)), ios::cur); //Posiciona o ponteiro de escrita dentro do registro com o cpf buscado
-//         dados cliente = entradaDados(procura);
-//         arquivo.write((char*)&cliente, sizeof(dados)); //Escreve o marcador alterado no arquivo
-//         arquivo.close();
-//         cout << "\nCliente editado com sucesso!";
-//     }
+    if (posicao == -1) //Caso o cpf não exista no arquivo
+        cout << "\nCPF nao encontrado!";
+    else {
+        cout << endl << "Cliente encontrado, digite seus novos dados: ";
+        fstream arquivo(nomeArquivo, ios::binary); //Abre o arquivo para leitura e escrita
 
-//     if (repeteOpcao()) {
-//         editarCliente(nomeArquivo);
-//     }
-// }
+        string linha;
+        int i = 0;
+        for (i; i <= posicao; i++) {
+            getCliente(arquivo, linha);
+            armazenados[i] = linha;
+        }
+
+
+        dados cliente = entradaDados(procura);
+        linha = cliente.nome + "," + cliente.sexo + "," + cliente.cpf + "," + to_string(round(cliente.dinheiro * 100.0) / 100.0) + "," + string(cliente.conexao) + "," + to_string(cliente.idade) + "," + to_string(cliente.apagado) + "\n";
+        i++;
+        armazenados[i] = linha;
+        i++;
+        for (i; i <= tamanho - posicao; i++) {
+            getCliente(arquivo, linha);
+            armazenados[i] = linha;
+        }
+
+        arquivo.close();
+
+        arquivo.open(nomeArquivo, ios::binary | ios::out);
+
+        for (int j = 0; j < tamanho; j++) {
+
+        }
+
+        // arquivo << cliente.nome << ',' << cliente.sexo << ',' << cliente.cpf << ',' << cliente.dinheiro << ',' << cliente.conexao << ',' << cliente.idade << ',' << cliente.apagado;
+
+        arquivo.close();
+        cout << "\nCliente editado com sucesso!";
+    }
+
+    if (repeteOpcao()) {
+        editarCliente(nomeArquivo);
+    }
+}
+
+int getCpf(string nomeArquivo, dados& procura) {
+    fstream arquivo(nomeArquivo, ios::in | ios::binary); //Abre o arquivo para leitura binária
+    int tamanho = tamanhoArquivo(nomeArquivo); //Informa o tamanho do arquivo
+
+    string cpfProcurado;
+    cout << "Digite o CPF para verificar se existe no sistema (11 digitos numerico): ";
+
+    while (!verificaCpf(cpfProcurado)) {
+        cout << "O CPF informado nao esta de acordo com o padrao esperado (11 digitos numerico). Digite novamente: ";
+    }
+
+    limpaTerminal();
+
+    int cont = 0, posicao = -1;
+
+    while ((cont < tamanho) and (posicao == -1)) { //Lê todo o arquivo ou para quando o cpf buscado for encontrado
+        procura = getCliente(arquivo);
+
+        if ((strcmp(cpfProcurado.c_str(), procura.cpf) == 0) && (!procura.apagado)) { //Verifica se os códigos são iguais e se o arquivo não está com o marcador de apagado
+            posicao = cont; //Define a posição no arquivo do código de barras procurado
+        }
+        cont++;
+    }
+    arquivo.close();
+    return posicao;
+}
 
 bool repeteOpcao() {
     string escolha;
@@ -991,6 +1028,5 @@ void imprimeDados(dados cliente) {
     cout << cliente.cpf << " - ";
     cout << cliente.dinheiro << " - ";
     cout << cliente.conexao << " - ";
-    cout << cliente.apagado << " - ";
     cout << cliente.idade << endl; //Imprime na tela todos os clientes do arquivo binário
 }
