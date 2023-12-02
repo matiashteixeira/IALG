@@ -62,7 +62,6 @@ dados getCliente(fstream& arquivo, string& linha);
 dados entradaDados(dados cliente);  //entra com os dados do cliente, exceto o CPF
 void percorreArquivo(fstream& arquivo, int fim, int inicio);
 void escrevaArquivo(fstream& arquivo, dados cliente);
-int getCpf(string nomeArquivo, dados& procura);
 
 int main() {
     limpaTerminal();
@@ -936,8 +935,7 @@ void editarCliente(string nomeArquivo) {
     }
 
     while ((cont < tamanho)) { //Lê todo o arquivo ou para quando o cpf buscado for encontrado
-        string linha;
-        procura = getCliente(arquivo, linha);
+        procura = getCliente(arquivo);
 
         if ((strcmp(cpf_buscado.c_str(), procura.cpf) == 0) && (!procura.apagado)) { //Verifica se os cpfs são iguais e se o arquivo não está com o marcador de apagado
             posicao = cont;
@@ -971,33 +969,6 @@ void editarCliente(string nomeArquivo) {
     if (repeteOpcao()) {
         editarCliente(nomeArquivo);
     }
-}
-
-int getCpf(string nomeArquivo, dados& procura) {
-    fstream arquivo(nomeArquivo, ios::in | ios::binary); //Abre o arquivo para leitura binária
-    int tamanho = tamanhoArquivo(nomeArquivo); //Informa o tamanho do arquivo
-
-    string cpfProcurado;
-    cout << "Digite o CPF para verificar se existe no sistema (11 digitos numerico): ";
-
-    while (!verificaCpf(cpfProcurado)) {
-        cout << "O CPF informado nao esta de acordo com o padrao esperado (11 digitos numerico). Digite novamente: ";
-    }
-
-    limpaTerminal();
-
-    int cont = 0, posicao = -1;
-
-    while ((cont < tamanho) and (posicao == -1)) { //Lê todo o arquivo ou para quando o cpf buscado for encontrado
-        procura = getCliente(arquivo);
-
-        if ((strcmp(cpfProcurado.c_str(), procura.cpf) == 0) && (!procura.apagado)) { //Verifica se os códigos são iguais e se o arquivo não está com o marcador de apagado
-            posicao = cont; //Define a posição no arquivo do código de barras procurado
-        }
-        cont++;
-    }
-    arquivo.close();
-    return posicao;
 }
 
 bool repeteOpcao() {
@@ -1041,6 +1012,5 @@ void imprimeDados(dados cliente) {
     cout << cliente.cpf << " - ";
     cout << cliente.dinheiro << " - ";
     cout << cliente.conexao << " - ";
-    cout << cliente.apagado << " - ";
     cout << cliente.idade << endl; //Imprime na tela todos os clientes do arquivo binário
 }
