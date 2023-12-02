@@ -61,7 +61,7 @@ dados getCliente(fstream& aquivo); //Entra com o cpf de um novo cliente e verifi
 dados getCliente(fstream& arquivo, string& linha);
 dados entradaDados(dados cliente);  //entra com os dados do cliente, exceto o CPF
 void percorreArquivo(fstream& arquivo, int fim, int inicio);
-void escrevaArquivo(ofstream& arquivo, dados cliente);
+void escrevaArquivo(fstream& arquivo, dados cliente);
 int getCpf(string nomeArquivo, dados& procura);
 
 int main() {
@@ -167,20 +167,23 @@ void limpaTerminal() {
 }
 
 void apagaEscreve(string nomeArquivo, int tamanho, dados* vet) {
-    ofstream arquivo(nomeArquivo, ios::binary | ios::out | ios::trunc); //Abre o arquivo .bin no modo escrita binário, apagando todos os dados do mesmo (ios::trunc)
+    fstream arquivo(nomeArquivo, ios::binary | ios::out | ios::trunc); //Abre o arquivo .bin no modo escrita binário, apagando todos os dados do mesmo (ios::trunc)
     for (int k = 0; k < tamanho; k++)
         escrevaArquivo(arquivo, vet[k]);
     arquivo.close();
 }
 
-void escrevaArquivo(ofstream& arquivo, dados cliente) {
+void escrevaArquivo(fstream& arquivo, dados cliente) {
     arquivo.write(cliente.nome.c_str(), cliente.nome.size()); // Escreve os dados do registro no arquivo binário
     arquivo.write(",", 1);
 
-    arquivo.write(&cliente.sexo, sizeof(cliente.sexo));
+    string sexo;
+    sexo += cliente.sexo;
+    arquivo.write(sexo.c_str(), sexo.size());
     arquivo.write(",", 1);
 
-    arquivo.write(cliente.cpf, sizeof(cliente.cpf));
+    string cpf = cliente.cpf;
+    arquivo.write(cpf.c_str(), cpf.size());
     arquivo.write(",", 1);
 
     arquivo.write(to_string(round(cliente.dinheiro * 100.0) / 100.0).c_str(), to_string(cliente.dinheiro).size());
@@ -199,7 +202,7 @@ void escrevaArquivo(ofstream& arquivo, dados cliente) {
 }
 
 void escreveFinal(string nomeArquivo, dados cliente) {
-    ofstream arquivo(nomeArquivo, ios::binary | ios::app | ios::ate); //Abre o arquino para escrita binário e insere dados no final sem apagar dados
+    fstream arquivo(nomeArquivo, ios::binary | ios::app | ios::ate); //Abre o arquino para escrita binário e insere dados no final sem apagar dados
     escrevaArquivo(arquivo, cliente);
     arquivo.close();
 }
@@ -224,7 +227,6 @@ int tamanhoArquivo(string nomeArquivo, int& deletados) {
 
     while (getline(arquivo, verificaDeletados))
     {
-        tamanho++;
         istringstream ss(verificaDeletados);
 
         getline(ss, cliente.nome, ',');
@@ -254,7 +256,7 @@ int tamanhoArquivo(string nomeArquivo, int& deletados) {
         if (apagado != "0") {
             deletados++;
         }
-
+        tamanho++;
     }
     return tamanho;
 }
@@ -294,6 +296,13 @@ void percorreArquivo(fstream& arquivo, int fim, int inicio) {
         string apagado;
         getline(ss, apagado, ',');
 
+        if (apagado == "0") {
+            cliente.apagado = 0;
+        }
+        else {
+            cliente.apagado = 1;
+        }
+
         if (!cliente.apagado) {
             imprimeDados(cliente);
         }
@@ -303,7 +312,7 @@ void percorreArquivo(fstream& arquivo, int fim, int inicio) {
 void importaCsv(string entrada, string saida) {
     fstream arquivo(entrada, ios::in); //Entra no arquivo .csv para leitura
     dados clientes;
-    ofstream arqvsaida(saida, ios::binary); //Abre o arquivo para escrita em binário
+    fstream arqvsaida(saida, ios::binary | ios::out); //Abre o arquivo para escrita em binário
 
     string linha;
     while (getline(arquivo, linha))
@@ -384,7 +393,7 @@ void imprimirListaClientes(string nomeArquivo) {
     }
     else { //Permite ao usuário imprimir a quantidade de clientes desejada
         limpaTerminal();
-        cout << "O arquivo tem " << tamanho << " clientes, e " << deletados << " cliente(s) deletado(s)\n\n"; //Informa a quantidade de clientes no arquivo
+        cout << "O arquivo tem " << tamanho << " clientes, sendo que " << deletados << " cliente(s) foram deletado(s)\n\n"; //Informa a quantidade de clientes no arquivo
         cout << "Deseja imprimir a partir de qual cliente? \n";
 
         while (!verificaInt(inicio) || inicio == 0) {
@@ -552,10 +561,10 @@ void excluirCliente(string nomeArquivo) {
             posicao = cont;
             procura.apagado = 1;
 
-            streampos pos = static_cast<streampos>(arquivo.tellg()) - static_cast<streampos>(linha.size()) - static_cast<streampos>(2);
+            streampos pos = arquivo.tellg() - static_cast<streampos>(linha.size()) - 1;
             arquivo.seekp(pos, ios::beg);
+            escrevaArquivo(arquivo, procura);
 
-            arquivo << procura.nome << ',' << procura.sexo << ',' << procura.cpf << ',' << procura.dinheiro << ',' << procura.conexao << ',' << procura.idade << ',' << procura.apagado;
         }
         cont++;
     }
@@ -911,49 +920,53 @@ dados getCliente(fstream& arquivo, string& linha) {
 }
 
 void editarCliente(string nomeArquivo) {
+
+    fstream arquivo(nomeArquivo); //Abre o arquivo para leitura e escrita
+
+    int tamanho = tamanhoArquivo(nomeArquivo), cont = 0, posicao = -1;
+    dados armazenados[tamanho];
+    char escolha;
     dados procura;
-    int posicao = getCpf(nomeArquivo, procura);
-    int deletados = 0;
-    int tamanho = tamanhoArquivo(nomeArquivo, deletados);
-    string armazenados[tamanho + deletados];
+
+    string cpf_buscado;
+    cout << "Digite o CPF para verificar se existe no sistema (11 digitos numerico): ";
+
+    while (!verificaCpf(cpf_buscado)) {
+        cout << "O CPF informado nao esta de acordo com o padrao esperado (11 digitos numerico). Digite novamente: ";
+    }
+
+    while ((cont < tamanho)) { //Lê todo o arquivo ou para quando o cpf buscado for encontrado
+        string linha;
+        procura = getCliente(arquivo, linha);
+
+        if ((strcmp(cpf_buscado.c_str(), procura.cpf) == 0) && (!procura.apagado)) { //Verifica se os cpfs são iguais e se o arquivo não está com o marcador de apagado
+            posicao = cont;
+            cout << "\nCliente encontrado, digite seus novos dados: \n";
+            dados inserido = entradaDados(procura);
+
+            armazenados[cont] = inserido;
+        }
+        else {
+            armazenados[cont] = procura;
+        }
+        cont++;
+    }
+    arquivo.close();
+    arquivo.open(nomeArquivo, ios::out);
+    for (int i = 0; i < tamanho; i++)
+    {
+        escrevaArquivo(arquivo, armazenados[i]);
+    }
+
 
     if (posicao == -1) //Caso o cpf não exista no arquivo
         cout << "\nCPF nao encontrado!";
     else {
-        cout << endl << "Cliente encontrado, digite seus novos dados: ";
-        fstream arquivo(nomeArquivo, ios::binary); //Abre o arquivo para leitura e escrita
-
-        string linha;
-        int i = 0;
-        for (i; i <= posicao; i++) {
-            getCliente(arquivo, linha);
-            armazenados[i] = linha;
-        }
-
-
-        dados cliente = entradaDados(procura);
-        linha = cliente.nome + "," + cliente.sexo + "," + cliente.cpf + "," + to_string(round(cliente.dinheiro * 100.0) / 100.0) + "," + string(cliente.conexao) + "," + to_string(cliente.idade) + "," + to_string(cliente.apagado) + "\n";
-        i++;
-        armazenados[i] = linha;
-        i++;
-        for (i; i <= tamanho - posicao; i++) {
-            getCliente(arquivo, linha);
-            armazenados[i] = linha;
-        }
-
-        arquivo.close();
-
-        arquivo.open(nomeArquivo, ios::binary | ios::out);
-
-        for (int j = 0; j < tamanho; j++) {
-
-        }
-
-        // arquivo << cliente.nome << ',' << cliente.sexo << ',' << cliente.cpf << ',' << cliente.dinheiro << ',' << cliente.conexao << ',' << cliente.idade << ',' << cliente.apagado;
-
-        arquivo.close();
         cout << "\nCliente editado com sucesso!";
     }
+
+    arquivo.close();
+
 
     if (repeteOpcao()) {
         editarCliente(nomeArquivo);
@@ -1028,5 +1041,6 @@ void imprimeDados(dados cliente) {
     cout << cliente.cpf << " - ";
     cout << cliente.dinheiro << " - ";
     cout << cliente.conexao << " - ";
+    cout << cliente.apagado << " - ";
     cout << cliente.idade << endl; //Imprime na tela todos os clientes do arquivo binário
 }
