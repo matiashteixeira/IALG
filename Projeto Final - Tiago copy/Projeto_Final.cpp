@@ -168,35 +168,36 @@ void limpaTerminal() {
 void apagaEscreve(string nomeArquivo, int tamanho, dados* vet) {
     fstream arquivo(nomeArquivo, ios::binary | ios::out | ios::trunc); //Abre o arquivo .bin no modo escrita binário, apagando todos os dados do mesmo (ios::trunc)
     for (int k = 0; k < tamanho; k++)
-        escrevaArquivo(arquivo, vet[k]);
+        escrevaArquivo(arquivo, vet[k]); //escrevve todos os dados do vetor vet no arquivo binário
     arquivo.close();
 }
 
 void escrevaArquivo(fstream& arquivo, dados cliente) {
-    arquivo.write(cliente.nome.c_str(), cliente.nome.size()); // Escreve os dados do registro no arquivo binário
-    arquivo.write(",", 1);
+    arquivo.write(cliente.nome.c_str(), cliente.nome.size()); // Escreve o nome no formato string no arquivo binário
+    arquivo.write(",", 1); //divide todos os campos por virgulas
 
     string sexo;
     sexo += cliente.sexo;
-    arquivo.write(sexo.c_str(), sexo.size());
+    arquivo.write(sexo.c_str(), sexo.size()); // Escreve o sexo no formato string no arquivo binário
     arquivo.write(",", 1);
 
     string cpf = cliente.cpf;
-    arquivo.write(cpf.c_str(), cpf.size());
+    arquivo.write(cpf.c_str(), cpf.size()); // Escreve o cpf no formato string no arquivo binário
     arquivo.write(",", 1);
 
-    arquivo.write(to_string(round(cliente.dinheiro * 100.0) / 100.0).c_str(), to_string(cliente.dinheiro).size());
+    arquivo.write(to_string(round(cliente.dinheiro * 100.0) / 100.0).c_str(), to_string(cliente.dinheiro).size()); // Escreve o dinheiro, já arredondado para duas casas decimais no formato string no arquivo binário
     arquivo.write(",", 1);
 
     string conex = cliente.conexao;
-    arquivo.write(conex.c_str(), conex.size());
+    arquivo.write(conex.c_str(), conex.size());  // Escreve a conexao no formato string no arquivo binário
     arquivo.write(",", 1);
 
-    arquivo.write(to_string(cliente.idade).c_str(), sizeof(int));
+    string idade = to_string(cliente.idade);
+    arquivo.write(idade.c_str(), idade.size()); // Escreve a idade no formato string no arquivo binário
     arquivo.write(",", 1);
 
     string apagado = to_string(cliente.apagado);
-    arquivo.write(apagado.c_str(), apagado.size());
+    arquivo.write(apagado.c_str(), apagado.size()); // Escreve a condição de apagado no formato string no arquivo binário
     arquivo.write("\n", 1);
 }
 
@@ -211,7 +212,7 @@ int tamanhoArquivo(string nomeArquivo) {
     int tamanho = 0;
     string verificaTamanho;
 
-    while (getline(arquivo, verificaTamanho)) {
+    while (getline(arquivo, verificaTamanho)) { //verifica o tamanho total de linhas no arquivo, ou seja, a quantidade de registros
         tamanho++;
     }
 
@@ -224,8 +225,7 @@ int tamanhoArquivo(string nomeArquivo, int& deletados) {
     dados cliente;
     string verificaDeletados;
 
-    while (getline(arquivo, verificaDeletados))
-    {
+    while (getline(arquivo, verificaDeletados)) { //verifica o tamanho total de linhas no arquivo, também informando ao parâmetro deletados qual a quantidade de dados deletados
         istringstream ss(verificaDeletados);
 
         getline(ss, cliente.nome, ',');
@@ -314,17 +314,17 @@ void importaCsv(string entrada, string saida) {
     fstream arqvsaida(saida, ios::binary | ios::out); //Abre o arquivo para escrita em binário
 
     string linha;
-    while (getline(arquivo, linha))
+    while (getline(arquivo, linha)) //percorre todas as linhas do arquivo
     {
-        istringstream ss(linha);
+        istringstream ss(linha); // Usa uma stringstream para dividir a linha em tokens
 
         string nome;
         getline(ss, nome, ',');
-        clientes.nome = nome;
+        clientes.nome = nome; // Lê e atribui o nome do cliente
 
         string sexo;
         getline(ss, sexo, ',');
-        clientes.sexo = sexo[0];
+        clientes.sexo = sexo[0]; // Lê e atribui o sexo do cliente (considera apenas o primeiro caractere)
 
         string cpf;
         getline(ss, cpf, ',');
@@ -336,11 +336,11 @@ void importaCsv(string entrada, string saida) {
 
         string conexao;
         getline(ss, conexao, ',');
-        strcpy(clientes.conexao, conexao.c_str());
+        strcpy(clientes.conexao, conexao.c_str()); // Lê e atribui a conexão do cliente (converte para array de caracteres)
 
         string idade;
         getline(ss, idade, ',');
-        clientes.idade = stoi(idade);
+        clientes.idade = stoi(idade); // Lê e atribui a idade do cliente (converte para inteiro)
 
         escrevaArquivo(arqvsaida, clientes);
     }
@@ -360,7 +360,7 @@ void exportaCsv(string nomeArquivo) {
     dados aux;
 
     for (int i = 0; i < tamanho; i++) {
-        aux = getCliente(arq_entrada);
+        aux = getCliente(arq_entrada); //pega os clientes do arquivo binário
         arquivo_csv << aux.nome << "," << aux.sexo << "," << aux.cpf << ","
             << aux.dinheiro << "," << aux.conexao << "," << aux.idade << "\n"; //Escreve no arquivo csv os dados, sendo que o (,) = mudança de colunas e o (\n) = quebras de linha
     }
