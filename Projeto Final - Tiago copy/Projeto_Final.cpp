@@ -12,15 +12,13 @@
 #include <fstream>
 #include <iomanip>
 #include <string.h>
-#include <ctype.h>
-#include <cstring>
 #include <cmath>
 
 using namespace std;
 
 struct dados {
     bool apagado = 0; //marcador lógico que indica se o cliente foi apagado ou não
-    string nome;  //Nome limitado a 200 caracteres
+    string nome;  //Nome tipo string, permitindo espaços e tamanho variável
     char sexo;  //Letra que indica se o cliente é do sexo masculino(M) ou feminino(F)
     char cpf[15]; //CPF limitado a 15 caracteres, visto que o padrão brasileiro possui 11 dígitos, porém deixou-se uma margem para evitar falhas
     float dinheiro;
@@ -39,8 +37,8 @@ void buscarCliente(string nomeArquivo); //Responsável por permitir que o usuár
 void buscarCpf(string nomeArquivo); //Busca pelo campo CPF
 void buscarNome(string nomeArquivo); //Busca pelo campo Nome
 void excluirCliente(string nomeArquivo); //Exlui o cliente desejado a partir do cpf
-void cadastrarCliente(string nomeArquivo, bool& sheel1, bool& sheel2); //Insere novos clientes no arquivo
-void editarCliente(string nomeArquivo); //Edita um cliente já cadastrado
+void cadastrarCliente(string nomeArquivo, bool sheel1, bool sheel2); //Insere novos clientes no arquivo
+void editarCliente(string nomeArquivo, bool sheel1, bool sheel2); //Edita um cliente já cadastrado
 
 //Funções Secundárias
 void menu(); //Imprime na tela as opções disponíveis para os usuários
@@ -57,11 +55,11 @@ bool verificaInt(int& num); //Verifica se os caracteres digitados podem ser int
 bool verificaSexo(string& sexo); //Verifica o sexo digitado
 bool verificaConexao(string& conexao); //Verifica a conexão digitada
 bool verificaCpf(string& cpf); //Verifica o cpf digitado
-dados getCliente(fstream& aquivo); //Entra com o cpf de um novo cliente e verifica sua existência no sistema
-dados getCliente(fstream& arquivo, string& linha);
-dados entradaDados(dados cliente);  //entra com os dados do cliente, exceto o CPF
-void percorreArquivo(fstream& arquivo, int fim, int inicio);
-void escrevaArquivo(fstream& arquivo, dados cliente);
+dados getCliente(fstream& aquivo); //Retorna um cliente presente em uma linha do arquivo binário
+dados getCliente(fstream& arquivo, string& linha); //Retorna um cliente presente em uma linha do arquivo e permite que o escopo onde a função é chamada tenha informações da linha (ex: o tamanho da mesma)
+dados entradaDados(dados cliente);  //Entra com os dados do cliente, exceto o CPF
+void percorreArquivo(fstream& arquivo, int fim, int inicio); //Percorre as linhas do arquivo, coletando todas as informações dos clientes e imprimindo-as na tela
+void escrevaArquivo(fstream& arquivo, dados cliente); //Escreve os dados dos clientes no arquivo, transformado-os em string e separando-os por vírgulas
 
 int main() {
     limpaTerminal();
@@ -110,7 +108,7 @@ int main() {
             break;
 
         case 6:
-            editarCliente(arquivoBin);
+            editarCliente(arquivoBin, shell1, shell2);
             break;
 
         case 7:
@@ -264,45 +262,11 @@ void percorreArquivo(fstream& arquivo, int fim, int inicio) {
     dados cliente;
 
     string linha;
-    for (int i = 0; i < fim - inicio; i++)
+    for (int i = 0; i < fim - inicio; i++) //Percorre o arquivo de acordo com a posição informada
     {
-        getline(arquivo, linha);
-        istringstream ss(linha);
+        cliente = getCliente(arquivo);
 
-        getline(ss, cliente.nome, ',');
-
-        string sexo;
-        getline(ss, sexo, ',');
-        cliente.sexo = sexo[0];
-
-        string cpf;
-        getline(ss, cpf, ',');
-        strcpy(cliente.cpf, cpf.c_str());
-
-        string dinheiro;
-        getline(ss, dinheiro, ',');
-        cliente.dinheiro = stof(dinheiro);
-
-        string conexao;
-        getline(ss, conexao, ',');
-        strcpy(cliente.conexao, conexao.c_str());
-
-
-        string idade;
-        getline(ss, idade, ',');
-        cliente.idade = stoi(idade);
-
-        string apagado;
-        getline(ss, apagado, ',');
-
-        if (apagado == "0") {
-            cliente.apagado = 0;
-        }
-        else {
-            cliente.apagado = 1;
-        }
-
-        if (!cliente.apagado) {
+        if (!cliente.apagado) { // Verifica se o cliente não está marcado como apagado e imprime os dados do cliente
             imprimeDados(cliente);
         }
     }
@@ -418,10 +382,10 @@ void imprimirListaClientes(string nomeArquivo) {
         }
 
         limpaTerminal();
-        for (int i = 0; i < inicio - 1; ++i) {
+        for (int i = 0; i < inicio - 1; ++i) { // Move o ponteiro de leitura para a posição do cliente inicial no arquivo, pulando a quantidade de linhas (\n) desejada
             arquivo.ignore(numeric_limits<streamsize>::max(), '\n');
         }
-        percorreArquivo(arquivo, fim + 1, inicio);
+        percorreArquivo(arquivo, fim + 1, inicio); //Percorre o arquivo, escrevendo na tela
 
     }
     arquivo.close();
@@ -462,7 +426,7 @@ void shellSortIdade(string nomeArquivo) {
     dados* vet;
     vet = new dados[tamanho];
 
-    for (int i = 0; i < tamanho; i++) {
+    for (int i = 0; i < tamanho; i++) { //Pega os clientes e armazena no vetor auxiliar caso não esteja com o marcador de deletado
         aux = getCliente(arquivo);
         if (!aux.apagado)
             vet[i] = aux;
@@ -505,7 +469,7 @@ void shellSortNome(string nomeArquivo) {
     dados* vet;
     vet = new dados[tamanho];
 
-    for (int i = 0; i < tamanho; i++) {
+    for (int i = 0; i < tamanho; i++) { //Pega os clientes e armazena no vetor auxiliar caso não esteja com o marcador de deletado
         aux = getCliente(arquivo);
         if (!aux.apagado)
             vet[i] = aux;
@@ -554,15 +518,15 @@ void excluirCliente(string nomeArquivo) {
 
     while ((cont < tamanho) and (posicao == -1)) { //Lê todo o arquivo ou para quando o cpf buscado for encontrado
         string linha;
-        procura = getCliente(arquivo, linha);
+        procura = getCliente(arquivo, linha); //Percorre o arquivo, analisando um cliente por vez
 
         if ((strcmp(cpf_buscado.c_str(), procura.cpf) == 0) && (!procura.apagado)) { //Verifica se os cpfs são iguais e se o arquivo não está com o marcador de apagado
             posicao = cont;
-            procura.apagado = 1;
+            procura.apagado = 1; //muda o marcador de apagado para true
 
-            streampos pos = arquivo.tellg() - static_cast<streampos>(linha.size()) - 1;
+            streampos pos = arquivo.tellg() - static_cast<streampos>(linha.size()) - 1; // Move o ponteiro de escrita para a posição do cliente no arquivo 
             arquivo.seekp(pos, ios::beg);
-            escrevaArquivo(arquivo, procura);
+            escrevaArquivo(arquivo, procura); //Escreve o cliente, agora indicado como apagado, no arquivo
 
         }
         cont++;
@@ -613,7 +577,7 @@ void buscarCpf(string nomeArquivo) {
 
 
     while ((cont < tamanho) and (posicao == -1)) { //Lê todo o arquivo ou para quando o cpf buscado for encontrado
-        procura = getCliente(arquivo);
+        procura = getCliente(arquivo); //Analisa um cliente do arquivo por vez
 
         if ((strcmp(cpfProcurado.c_str(), procura.cpf) == 0) && (!procura.apagado)) { //Verifica se os códigos são iguais e se o arquivo não está com o marcador de apagado
             posicao = cont; //Define a posição no arquivo do código de barras procurado
@@ -642,8 +606,7 @@ void buscarNome(string nomeArquivo) {
     dados procura;
 
     while ((cont < tamanho) and (posicao == -1)) { //Percorre todo o arquivo até que o nome buscado seja encontrado
-
-        procura = getCliente(arquivo);
+        procura = getCliente(arquivo); //Analisa um cliente do arquivo por vez
 
         if ((strcmp(nome_buscado.c_str(), procura.nome.c_str()) == 0) && (!procura.apagado)) //Verifica se os nomes são iguais e se o arquivo não está com o marcador de apagado
             posicao = cont; //Define a posição no arquivo do nome procurado
@@ -659,7 +622,7 @@ void buscarNome(string nomeArquivo) {
     }
 }
 
-void cadastrarCliente(string nomeArquivo, bool& sheel1, bool& sheel2) {
+void cadastrarCliente(string nomeArquivo, bool sheel1, bool sheel2) {
     fstream arquivo(nomeArquivo, ios::in | ios::binary); //Abre o arquivo para leitura binária
     int tamanho = tamanhoArquivo(nomeArquivo); //Informa o tamanho do arquivo
 
@@ -676,7 +639,7 @@ void cadastrarCliente(string nomeArquivo, bool& sheel1, bool& sheel2) {
     dados procura;
 
     while ((cont < tamanho) and (posicao == -1)) { //Lê todo o arquivo ou para quando o cpf buscado for encontrado
-        procura = getCliente(arquivo);
+        procura = getCliente(arquivo); //Analisa um cliente do arquivo por vez
 
         if ((strcmp(cpfProcurado.c_str(), procura.cpf) == 0) && (!procura.apagado)) { //Verifica se os códigos são iguais e se o arquivo não está com o marcador de apagado
             posicao = cont; //Define a posição no arquivo do código de barras procurado
@@ -686,7 +649,7 @@ void cadastrarCliente(string nomeArquivo, bool& sheel1, bool& sheel2) {
     arquivo.close();
 
     if (posicao == -1) { //Caso o cliente não esteja cadastrado
-        strcpy(procura.cpf, cpfProcurado.c_str());
+        strcpy(procura.cpf, cpfProcurado.c_str()); //Copia o cpf procurado já no cliente, já que não é permitido a modificação
         cout << "Cliente nao esta no sistema, digite os dados: \n";
         escreveFinal(nomeArquivo, entradaDados(procura)); //Escreve no final do arquivo
         cout << "\nCliente registrado com sucesso!";
@@ -840,34 +803,35 @@ dados getCliente(fstream& arquivo) {
     string linha;
 
     getline(arquivo, linha);
-    istringstream ss(linha);
+    istringstream ss(linha);  // Cria um fluxo de string (istringstream) para analisar a linha
 
-    getline(ss, cliente.nome, ',');
+    getline(ss, cliente.nome, ',');  // Lê o nome do cliente separado por vírgula e armazena na estrutura 'cliente'
 
     string sexo;
-    getline(ss, sexo, ',');
+    getline(ss, sexo, ','); // Lê o sexo do cliente separado por vírgula e armazena na estrutura 'cliente'
     cliente.sexo = sexo[0];
 
     string cpf;
     getline(ss, cpf, ',');
-    strcpy(cliente.cpf, cpf.c_str());
+    strcpy(cliente.cpf, cpf.c_str()); // Lê o CPF do cliente separado por vírgula e armazena na estrutura 'cliente'
 
     string dinheiro;
     getline(ss, dinheiro, ',');
-    cliente.dinheiro = stof(dinheiro);
+    cliente.dinheiro = stof(dinheiro); // Lê o valor do dinheiro do cliente separado por vírgula e armazena na estrutura 'cliente'
 
     string conexao;
     getline(ss, conexao, ',');
-    strcpy(cliente.conexao, conexao.c_str());
+    strcpy(cliente.conexao, conexao.c_str()); // Lê o tipo de conexão do cliente separado por vírgula e armazena na estrutura 'cliente'
 
 
     string idade;
     getline(ss, idade, ',');
-    cliente.idade = stoi(idade);
+    cliente.idade = stoi(idade); // Lê a idade do cliente separada por vírgula e armazena na estrutura 'cliente'
 
     string apagado;
-    getline(ss, apagado, ',');
-    if (apagado == "0") {
+    getline(ss, apagado, ','); // Lê o campo 'apagado' do cliente separado por vírgula e armazena na estrutura 'cliente'
+
+    if (apagado == "0") { // Verifica se o cliente está marcado como apagado (apagado = 1) ou não (apagado = 0)
         cliente.apagado = 0;
     }
     else {
@@ -881,34 +845,34 @@ dados getCliente(fstream& arquivo, string& linha) {
     dados cliente;
 
     getline(arquivo, linha);
-    istringstream ss(linha);
+    istringstream ss(linha);  // Cria um fluxo de string (istringstream) para analisar a linha
 
-    getline(ss, cliente.nome, ',');
+    getline(ss, cliente.nome, ',');  // Lê o nome do cliente separado por vírgula e armazena na estrutura 'cliente'
 
     string sexo;
-    getline(ss, sexo, ',');
+    getline(ss, sexo, ','); // Lê o sexo do cliente separado por vírgula e armazena na estrutura 'cliente'
     cliente.sexo = sexo[0];
 
     string cpf;
     getline(ss, cpf, ',');
-    strcpy(cliente.cpf, cpf.c_str());
+    strcpy(cliente.cpf, cpf.c_str()); // Lê o CPF do cliente separado por vírgula e armazena na estrutura 'cliente'
 
     string dinheiro;
     getline(ss, dinheiro, ',');
-    cliente.dinheiro = stof(dinheiro);
+    cliente.dinheiro = stof(dinheiro); // Lê o valor do dinheiro do cliente separado por vírgula e armazena na estrutura 'cliente'
 
     string conexao;
     getline(ss, conexao, ',');
-    strcpy(cliente.conexao, conexao.c_str());
-
+    strcpy(cliente.conexao, conexao.c_str()); // Lê o tipo de conexão do cliente separado por vírgula e armazena na estrutura 'cliente'
 
     string idade;
     getline(ss, idade, ',');
-    cliente.idade = stoi(idade);
+    cliente.idade = stoi(idade); // Lê a idade do cliente separada por vírgula e armazena na estrutura 'cliente'
 
     string apagado;
-    getline(ss, apagado, ',');
-    if (apagado == "0") {
+    getline(ss, apagado, ','); // Lê o campo 'apagado' do cliente separado por vírgula e armazena na estrutura 'cliente'
+
+    if (apagado == "0") { // Verifica se o cliente está marcado como apagado (apagado = 1) ou não (apagado = 0)
         cliente.apagado = 0;
     }
     else {
@@ -918,12 +882,12 @@ dados getCliente(fstream& arquivo, string& linha) {
     return cliente;
 }
 
-void editarCliente(string nomeArquivo) {
+void editarCliente(string nomeArquivo, bool sheel1, bool sheel2) {
 
     fstream arquivo(nomeArquivo); //Abre o arquivo para leitura e escrita
 
     int tamanho = tamanhoArquivo(nomeArquivo), cont = 0, posicao = -1;
-    dados armazenados[tamanho];
+    dados armazenados[tamanho]; //Vetor para auxiliar a repor os dados modificados no arquivo
     char escolha;
     dados procura;
 
@@ -940,34 +904,37 @@ void editarCliente(string nomeArquivo) {
         if ((strcmp(cpf_buscado.c_str(), procura.cpf) == 0) && (!procura.apagado)) { //Verifica se os cpfs são iguais e se o arquivo não está com o marcador de apagado
             posicao = cont;
             cout << "\nCliente encontrado, digite seus novos dados: \n";
-            dados inserido = entradaDados(procura);
+            dados inserido = entradaDados(procura); //Modifica o cliente desejado
 
-            armazenados[cont] = inserido;
+            armazenados[cont] = inserido; //Insere ele no arquivo
         }
         else {
-            armazenados[cont] = procura;
+            armazenados[cont] = procura; //Insere o restante dos dados que não serão modificados
         }
         cont++;
     }
     arquivo.close();
-    arquivo.open(nomeArquivo, ios::out);
+    arquivo.open(nomeArquivo, ios::out); //Abre o arquivo para escrita
     for (int i = 0; i < tamanho; i++)
     {
-        escrevaArquivo(arquivo, armazenados[i]);
+        escrevaArquivo(arquivo, armazenados[i]); //Escreve todos os dados do vetro auxiliar no arquivo binário novamente, porém já modificados
     }
+    arquivo.close();
 
 
     if (posicao == -1) //Caso o cpf não exista no arquivo
         cout << "\nCPF nao encontrado!";
     else {
         cout << "\nCliente editado com sucesso!";
+
+        if (sheel1) //Verifica se o arquivo já havia sido ordenado anteriormente
+            shellSortIdade(nomeArquivo);
+        else if (sheel2)
+            shellSortNome(nomeArquivo);
     }
 
-    arquivo.close();
-
-
     if (repeteOpcao()) {
-        editarCliente(nomeArquivo);
+        editarCliente(nomeArquivo, sheel1, sheel2);
     }
 }
 
